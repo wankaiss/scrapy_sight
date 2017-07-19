@@ -9,10 +9,10 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'sight'
+BOT_NAME = 'scrapy_sight.spiders'
 
-SPIDER_MODULES = ['sight.spiders']
-NEWSPIDER_MODULE = 'sight.spiders'
+SPIDER_MODULES = ['scrapy_sight.spiders']
+NEWSPIDER_MODULE = 'scrapy_sight.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'sight (+http://www.yourdomain.com)'
@@ -56,7 +56,7 @@ SPLASH_URL = 'http://127.0.0.1:8050'
 DOWNLOADER_MIDDLEWARES = {
     # 'sight.middlewares.MyCustomDownloaderMiddleware': 543,
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': None,
-    'sight.spiders.rotate_useragent.RotateUserAgentMiddleware': 400,
+    'scrapy_sight.spiders.rotate_useragent.RotateUserAgentMiddleware': 400,
     'scrapyjs.SplashMiddleware': 725,  # render html for crawl
     # 'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110, # proxy use only
     # 'sight.middlewares.ProxyMiddleware': 100,  # proxy use only
