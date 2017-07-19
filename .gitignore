@@ -9,4 +9,4 @@ scrapy_sight/spiders/rotate_useragent.pyc
 scrapy_sight/spiders/sightcrawl.pyc
 scrapy_sight/spiders/solocrawl.pyc
 scrapy_sight/spiders/testa.pyc
-scrapy_sight/geo_api.py
+#scrapy_sight/geo_api.py
