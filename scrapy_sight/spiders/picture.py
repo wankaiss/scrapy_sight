@@ -18,8 +18,8 @@ class PictureCrawl(scrapy.Spider):
             })
 
     def parse(self, response):
-        for option in response.xpath('//div[@id="imgid"]'):
-            print option.xpath("ul/text()").extract()
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:5]:
+            print option.xpath('a/img/@src').extract_first()
 
     # def parse(self, response):
     #     result = response.xpath('//div[@id="imgid"]/ul').extract()
