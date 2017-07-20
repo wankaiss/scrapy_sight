@@ -106,7 +106,7 @@ landmark = [u'上海中心大厦',
 
 
 def google_geo_api():
-    key = "AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k"
+    key = "自己去google geocoding申请"
     url = "https://maps.googleapis.com/maps/api/geocode/json?address=平安国际金融中心&key=%s" % (key)
 
     response = urllib2.urlopen(url)
@@ -119,7 +119,7 @@ def google_geo_api():
 
 def baidu_geo_api(sight_name):
     sight_name = sight_name.decode('utf-8')
-    url = 'http://api.map.baidu.com/geocoder/v2/?output=json&address=%s&ak=qsQB3G3zIR1SvZ01bEIAMBHGbCCUhTgm' % sight_name
+    url = 'http://api.map.baidu.com/geocoder/v2/?output=json&address=%s&ak=自己去baidu geocoding申请' % sight_name
     log.msg('run into baidu_geo_api at line 123, url: ' + url, log.INFO)
     response = urllib2.urlopen(url.encode('utf-8'))
     result = response.read()
