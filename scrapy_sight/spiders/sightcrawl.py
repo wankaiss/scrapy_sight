@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from ..items import SightItem
-import uuid
 import re
 from ..geo_api import baidu_geo_api, landmark
 from scrapy import log
