@@ -6,7 +6,7 @@ from ..items import ProxyIp
 
 
 class TestSpider(scrapy.Spider):
-    name = 'testa'
+    name = 'proxy_ip'
     allowed_domains = ['xicidaili.com']
     start_urls = ["http://www.xicidaili.com/nt"]
 

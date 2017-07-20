@@ -1,33 +1,38 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from ..items import SightItem
+from scrapy import log
+import re
 
 
 class SoloSpider(scrapy.Spider):
-    name = 'solocrawl'
+    name = 'image'
     allowed_domains = ['baidu.com']
-    start_urls = ["https://baike.baidu.com/item/%E4%B8%AD%E5%9B%BD%E6%97%85%E6%B8%B8%E6%99%AF%E7%82%B9"]
+    start_urls = [
+        "http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%E7%8E%AF%E7%90%83%E8%B4%B8%E6%98%93%E5%B9%BF%E5%9C%BA&ic=0&width=0&height=0"]  # 大厦描述
+
+    # start_urls = ["http://www.sohu.com/a/150475260_451024"]  # 大厦描述
+
+    def start_requests(self):
+        for url in self.start_urls:
+            yield scrapy.Request(url, self.parse, meta={
+                'splash': {
+                    'endpoint': 'render.html',
+                    'args': {'wait': 0.5}
+                }
+            })
 
     def parse(self, response):
-        i = 0
-        for sel in response.xpath('//*[@class="content-wrapper"]/div[1]/div[2]/div'):
-            item = SightItem()
-            class_type = sel.xpath('@class').extract()
-            # print ('result: %s, i %d' % (result, i))
-            # if len(class_type) != 0 and class_type[0] == u'para-title level-2':
-            #     category = sel.xpath('h2/text()').extract_first()
-            #     item['category'] = category
-            #     print ('title_level_2: %s, i=: %d' % (category, i))
-            #
-            # if len(class_type) != 0 and class_type[0] == u'para-title level-3':
-            #     title = sel.xpath('h3/text()').extract_first()
-            #     item['title'] = title
-            #     print ('title_level_3: %s, i=: %d' % (title, i))
-
-            if len(class_type) != 0 and class_type[0] == u'para':
-                description = sel.xpath('text()').extract()
-                str = ''
-                for descrip in description:
-                    i += 1
-                    str += descrip
-                    print ('str: %s, ==================%d' % (str, 1))
+        print 'response_body: %s' % response.xpath('//div[@id="imgid"]/ul[@class="imglist"]').extract()
+        # url = ''
+        # for option in response.xpath('//div[@id="imgid"]'):
+        #     # for option in response.xpath('//div[@id="imgid"]/ul/li')[0:5]:
+        #     img_src = option.xpath('a/img/@src').extract_first()
+        #     i = 0
+        #     log.msg('img_src in line 54***********' + option.xpath('a/img/@src').extract_first(), log.INFO)
+        #     if i == 4:
+        #         url += img_src
+        #     else:
+        #         url += img_src + ','
+        #         i += 1
+        # print type(url), ':', url

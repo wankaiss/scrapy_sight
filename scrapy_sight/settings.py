@@ -34,7 +34,7 @@ DOWNLOAD_DELAY = 5
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
 
-SPLASH_URL = 'http://127.0.0.1:8050'
+SPLASH_URL = 'http://172.26.30.78:8050'
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
@@ -57,9 +57,9 @@ DOWNLOADER_MIDDLEWARES = {
     # 'sight.middlewares.MyCustomDownloaderMiddleware': 543,
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': None,
     'scrapy_sight.spiders.rotate_useragent.RotateUserAgentMiddleware': 400,
-    'scrapyjs.SplashMiddleware': 725,  # render html for crawl
+    'scrapyjs.SplashMiddleware': 725,  # render html for crawl user splash
     # 'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110, # proxy use only
-    # 'sight.middlewares.ProxyMiddleware': 100,  # proxy use only
+    # 'scrapy_sight.middlewares.ProxyMiddleware': 100,  # proxy use only
     # 'scrapy_splash.SplashCookiesMiddleware': 723,  # render html with scrapy_splash
     # 'scrapy_splash.SplashMiddleware': 725,  # render html with scrapy_splash
     # 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,  # render html with scrapy_splash
@@ -103,8 +103,6 @@ DUPEFILTER_CLASS = 'scrapyjs.SplashAwareDupeFilter'
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 PROXIES = [
     {'ip_port': '127.0.0.1:1080', 'user_pass': ''},
-    {'ip_port': '58.252.6.165:9000', 'user_pass': ''},
-    {'ip_port': '123.138.216.91:9999', 'user_pass': ''},
     {'ip_port': '119.23.129.24:3128', 'user_pass': ''},
     {'ip_port': '61.143.228.162:3128', 'user_pass': ''},
     {'ip_port': '118.178.124.33:3128', 'user_pass': ''},
@@ -113,7 +111,6 @@ PROXIES = [
     {'ip_port': '113.108.141.98:9797', 'user_pass': ''},
     {'ip_port': '183.185.209.18:9797', 'user_pass': ''},
     {'ip_port': '222.52.142.242:8080', 'user_pass': ''},
-    {'ip_port': '114.93.56.64:9000', 'user_pass': ''},
     {'ip_port': '120.69.83.21:8088', 'user_pass': ''},
     {'ip_port': '221.221.213.231:9999', 'user_pass': ''},
     {'ip_port': '58.59.68.91:9797', 'user_pass': ''},
@@ -137,16 +134,12 @@ PROXIES = [
     {'ip_port': '162.105.17.69:8118', 'user_pass': ''},
     {'ip_port': '222.132.145.122:53281', 'user_pass': ''},
     {'ip_port': '124.239.177.85:8080', 'user_pass': ''},
-    {'ip_port': '58.67.159.50:80', 'user_pass': ''},
     {'ip_port': '114.115.210.154:3128', 'user_pass': ''},
     {'ip_port': '113.79.75.153:9797', 'user_pass': ''},
     {'ip_port': '210.44.213.63:1080', 'user_pass': ''},
     {'ip_port': '125.88.25.223:808', 'user_pass': ''},
     {'ip_port': '221.205.110.229:9797', 'user_pass': ''},
-    {'ip_port': '114.239.3.187:808', 'user_pass': ''},
-    {'ip_port': '1.202.193.60:9000', 'user_pass': ''},
     {'ip_port': '125.33.243.203:9000', 'user_pass': ''},
-    {'ip_port': '121.13.84.190:808', 'user_pass': ''},
     {'ip_port': '123.138.216.90:9999', 'user_pass': ''},
     {'ip_port': '112.243.115.51:9999', 'user_pass': ''},
     {'ip_port': '101.5.177.62:8123', 'user_pass': ''},
@@ -175,26 +168,21 @@ PROXIES = [
     {'ip_port': '183.56.177.130:808', 'user_pass': ''},
     {'ip_port': '163.125.200.247:9000', 'user_pass': ''},
     {'ip_port': '119.36.92.41:80', 'user_pass': ''},
-    {'ip_port': '118.120.202.178:9797', 'user_pass': ''},
     {'ip_port': '60.28.39.226:8080', 'user_pass': ''},
     {'ip_port': '14.211.123.218:9797', 'user_pass': ''},
-    {'ip_port': '163.125.156.114:8888', 'user_pass': ''},
     {'ip_port': '183.184.113.151:9797', 'user_pass': ''},
     {'ip_port': '180.76.134.106:3128', 'user_pass': ''},
     {'ip_port': '180.169.59.222:8080', 'user_pass': ''},
     {'ip_port': '101.251.234.254:51238', 'user_pass': ''},
     {'ip_port': '115.183.11.158:9999', 'user_pass': ''},
-    {'ip_port': '183.184.195.60:9797', 'user_pass': ''},
     {'ip_port': '123.207.159.149:3128', 'user_pass': ''},
     {'ip_port': '60.13.31.160:7895', 'user_pass': ''},
     {'ip_port': '124.152.5.205:7895', 'user_pass': ''},
-    {'ip_port': '113.66.158.158:9797', 'user_pass': ''},
     {'ip_port': '183.39.157.20:9797', 'user_pass': ''},
     {'ip_port': '183.14.79.136:9797', 'user_pass': ''},
     {'ip_port': '61.183.71.66:808', 'user_pass': ''},
     {'ip_port': '27.46.37.235:9797', 'user_pass': ''},
     {'ip_port': '42.196.254.7:8080', 'user_pass': ''},
-    {'ip_port': '27.46.39.102:9797', 'user_pass': ''},
     {'ip_port': '116.62.233.76:3128', 'user_pass': ''},
     {'ip_port': '58.61.4.34:9797', 'user_pass': ''},
     {'ip_port': '218.56.132.157:8080', 'user_pass': ''},

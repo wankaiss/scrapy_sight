@@ -6,7 +6,7 @@ import scrapy
 class PictureCrawl(scrapy.Spider):
     name = 'picture'
     allowed_domains = ['baidu.com']
-    start_urls = ['http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=金茂大厦&ic=0&width=0&height=0']
+    start_urls = ['http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=最全的高楼以及标志性建筑最全的高楼以及标志性建筑及名称&ic=0&width=0&height=0']
 
     def start_requests(self):
         for url in self.start_urls:
@@ -20,6 +20,7 @@ class PictureCrawl(scrapy.Spider):
     def parse(self, response):
         for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:5]:
             print option.xpath('a/img/@src').extract_first()
+            print option.xpath('a/img/@alt').extract_first()
 
     # def parse(self, response):
     #     result = response.xpath('//div[@id="imgid"]/ul').extract()

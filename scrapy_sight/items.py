@@ -11,13 +11,11 @@ import scrapy
 class SightItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    id = scrapy.Field()
     category = scrapy.Field()
     title = scrapy.Field()
     url = scrapy.Field()
     description = scrapy.Field()
-    meta = scrapy.Field()
-    lon = scrapy.Field()
+    lng = scrapy.Field()
     lat = scrapy.Field()
 
 
