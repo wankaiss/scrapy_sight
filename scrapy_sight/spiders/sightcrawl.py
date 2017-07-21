@@ -8,6 +8,9 @@ import urllib
 
 
 class SightSpider(scrapy.Spider):
+    def __init__(self):
+        self.page_num = 0
+
     name = 'sight'
     allowed_domains = ['baidu.com']
     start_urls = ["http://image.baidu.com"]
@@ -47,7 +50,8 @@ class SightSpider(scrapy.Spider):
             description = 'description_null'
             log.msg('description_null in line 45', level=log.INFO)
         item['description'] = description
-        picture_url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%s&ic=0&width=0&height=0' % item['title'].decode('utf-8')
+        picture_url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%s&ic=0&width=0&height=0' % item[
+            'title'].decode('utf-8')
         log.msg('picture_url: ' + picture_url, level=log.INFO)
         log.msg('run out content_parse at line 51', level=log.INFO)
         yield scrapy.Request(picture_url, meta={'item': item,
@@ -60,7 +64,11 @@ class SightSpider(scrapy.Spider):
     def picture_parse(self, response):
         log.msg('run into picture_parse at line 56', level=log.INFO)
         item = response.meta['item']
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:30]:
+        host_address = 'http://image.baidu.com'
+        path = response.xpath('//*[@id="page"]/a[10]/@href').extract_first()
+        url = host_address.encode('utf-8') + path
+
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
@@ -79,3 +87,13 @@ class SightSpider(scrapy.Spider):
             log.msg('img_src: ' + img_src + ' at line 76', level=log.INFO)
             log.msg('run out picture_parse at line 77', level=log.INFO)
             yield item
+
+        if path and self.page_num < 3:
+            self.page_num += 1
+            yield scrapy.Request(url, meta={'item': item, 'splash': {
+                'endpoint': 'render.html',
+                'args': {'wait': 0.5}
+            }
+                                            }, callback=self.picture_parse)
+
+    # def next_page_parse(self, response):

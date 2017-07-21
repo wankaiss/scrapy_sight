@@ -3,6 +3,7 @@ import scrapy
 from ..items import SightItem
 from scrapy import log
 import re
+import urllib
 
 
 class SoloSpider(scrapy.Spider):
@@ -23,16 +24,34 @@ class SoloSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        print 'response_body: %s' % response.xpath('//div[@id="imgid"]/ul[@class="imglist"]').extract()
-        # url = ''
-        # for option in response.xpath('//div[@id="imgid"]'):
-        #     # for option in response.xpath('//div[@id="imgid"]/ul/li')[0:5]:
-        #     img_src = option.xpath('a/img/@src').extract_first()
-        #     i = 0
-        #     log.msg('img_src in line 54***********' + option.xpath('a/img/@src').extract_first(), log.INFO)
-        #     if i == 4:
-        #         url += img_src
-        #     else:
-        #         url += img_src + ','
-        #         i += 1
-        # print type(url), ':', url
+        host_address = 'http://image.baidu.com'
+        path = response.xpath('//*[@id="page"]/a[10]/@href').extract_first()
+        url = host_address.encode('utf-8') + path
+        print url
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[19:]:
+            item_final = SightItem()
+            item_final['title'] = 'title'
+            item_final['lng'] = 'lng'
+            item_final['lat'] = 'lat'
+            item_final['description'] = 'description'
+            item_final['category'] = 'category'
+            img_src = option.xpath('a/@href').extract_first()
+            result = re.search(r'.*objurl=(http.*?)&.*', img_src).groups()[0]
+            img_src = urllib.unquote(urllib.unquote(result)).encode('utf-8')
+            item_final['url'] = img_src
+            if img_src is None or len(img_src) == 0:
+                item_final['url'] = 'url_null'
+                log.msg('img_src is null==============' + img_src, level=log.INFO)
+            log.msg('img_src in line 61***********' + img_src + '; type: %s ' % type(img_src), log.INFO)
+            log.msg('img_src: ' + img_src + ' at line 76', level=log.INFO)
+            log.msg('run out picture_parse at line 77', level=log.INFO)
+            yield item_final
+
+        for i in range(0, 2):
+            if path:
+                yield scrapy.Request(url, meta={'splash': {
+                                                    'endpoint': 'render.html',
+                                                    'args': {'wait': 0.5}
+                                                }
+                                                }, callback=self.parse)
+
