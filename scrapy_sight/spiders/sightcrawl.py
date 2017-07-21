@@ -4,6 +4,7 @@ from ..items import SightItem
 import re
 from ..geo_api import baidu_geo_api, landmark
 from scrapy import log
+import urllib
 
 
 class SightSpider(scrapy.Spider):
@@ -21,7 +22,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in landmark[0:5]:
+        for build in landmark[0:1]:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             lng, lat = baidu_geo_api(build.encode('utf-8'))
@@ -59,20 +60,22 @@ class SightSpider(scrapy.Spider):
     def picture_parse(self, response):
         log.msg('run into picture_parse at line 56', level=log.INFO)
         item = response.meta['item']
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:5]:
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:30]:
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
             item_final['lat'] = item['lat']
             item_final['description'] = item['description']
             item_final['category'] = item['category']
-            img_src = option.xpath('a/img/@src').extract_first()
+            img_src = option.xpath('a/@href').extract_first()
+            result = re.search(r'.*objurl=(http.*?)&.*', img_src).groups()[0]
+            img_src = urllib.unquote(urllib.unquote(result)).encode('utf-8')
             item['url'] = img_src
             if img_src is None or len(img_src) == 0:
                 item['url'] = 'url_null'
                 log.msg('img_src is null==============' + img_src, level=log.INFO)
             item_final['url'] = item['url']
-            log.msg('img_src in line 61***********' + str(img_src).encode('utf-8') + '; type: %s ' % type(img_src), log.INFO)
+            log.msg('img_src in line 61***********' + img_src + '; type: %s ' % type(img_src), log.INFO)
             log.msg('img_src: ' + img_src + ' at line 76', level=log.INFO)
             log.msg('run out picture_parse at line 77', level=log.INFO)
             yield item
