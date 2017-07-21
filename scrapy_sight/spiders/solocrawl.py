@@ -10,7 +10,7 @@ class SoloSpider(scrapy.Spider):
     name = 'image'
     allowed_domains = ['baidu.com']
     start_urls = [
-        "http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%E7%8E%AF%E7%90%83%E8%B4%B8%E6%98%93%E5%B9%BF%E5%9C%BA&ic=0&width=0&height=0"]  # 大厦描述
+        "http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%E4%B8%8A%E6%B5%B7%E4%B8%AD%E5%BF%83%E5%A4%A7%E5%8E%A6&pn=0&gsm=64&ct=&ic=0&lm=-1&width=0&height=0"]  # 大厦描述
 
     # start_urls = ["http://www.sohu.com/a/150475260_451024"]  # 大厦描述
 
@@ -26,32 +26,16 @@ class SoloSpider(scrapy.Spider):
     def parse(self, response):
         host_address = 'http://image.baidu.com'
         path = response.xpath('//*[@id="page"]/a[10]/@href').extract_first()
+        page_num = response.xpath('//div[@id="page"]/strong/span/text()').extract_first()
         url = host_address.encode('utf-8') + path
-        print url
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[19:]:
-            item_final = SightItem()
-            item_final['title'] = 'title'
-            item_final['lng'] = 'lng'
-            item_final['lat'] = 'lat'
-            item_final['description'] = 'description'
-            item_final['category'] = 'category'
-            img_src = option.xpath('a/@href').extract_first()
-            result = re.search(r'.*objurl=(http.*?)&.*', img_src).groups()[0]
-            img_src = urllib.unquote(urllib.unquote(result)).encode('utf-8')
-            item_final['url'] = img_src
-            if img_src is None or len(img_src) == 0:
-                item_final['url'] = 'url_null'
-                log.msg('img_src is null==============' + img_src, level=log.INFO)
-            log.msg('img_src in line 61***********' + img_src + '; type: %s ' % type(img_src), log.INFO)
-            log.msg('img_src: ' + img_src + ' at line 76', level=log.INFO)
-            log.msg('run out picture_parse at line 77', level=log.INFO)
-            yield item_final
-
-        for i in range(0, 2):
-            if path:
-                yield scrapy.Request(url, meta={'splash': {
-                                                    'endpoint': 'render.html',
-                                                    'args': {'wait': 0.5}
-                                                }
-                                                }, callback=self.parse)
+        print 'page_num: %s' % page_num
+        print 'url: %s' % url
+        if page_num <= u'3':
+            print 'run into page_num < 3 condition'
+            yield scrapy.Request(url, meta={
+                'splash': {
+                    'endpoint': 'render.html',
+                    'args': {'wait': 0.5}
+                }
+            }, callback=self.parse)
 

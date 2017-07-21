@@ -192,3 +192,6 @@ PROXIES = [
     {'ip_port': '114.115.210.105:3128', 'user_pass': ''},
     {'ip_port': '121.13.84.143:808', 'user_pass': ''},
 ]
+
+# Every page has 20 data
+PAGE_NUM = u'3'

@@ -2,14 +2,13 @@
 import scrapy
 from ..items import SightItem
 import re
-from ..geo_api import baidu_geo_api, landmark
+from ..geo_api import baidu_geo_api, landmark, Editors_pick, google_geo_api
 from scrapy import log
 import urllib
+from ..settings import PAGE_NUM
 
 
 class SightSpider(scrapy.Spider):
-    def __init__(self):
-        self.page_num = 0
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -25,10 +24,10 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in landmark[0:1]:
+        for build in Editors_pick:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
-            lng, lat = baidu_geo_api(build.encode('utf-8'))
+            lng, lat = google_geo_api(build.encode('utf-8'))
             item['lng'] = lng
             item['lat'] = lat
             item['category'] = u'中国地标建筑'
@@ -62,12 +61,13 @@ class SightSpider(scrapy.Spider):
                                                 }, callback=self.picture_parse)
 
     def picture_parse(self, response):
-        log.msg('run into picture_parse at line 56', level=log.INFO)
+        log.msg('run into picture_parse at line 66', level=log.INFO)
         item = response.meta['item']
         host_address = 'http://image.baidu.com'
         path = response.xpath('//*[@id="page"]/a[10]/@href').extract_first()
         url = host_address.encode('utf-8') + path
-
+        page_num = response.xpath('//*[@id="page"]/strong/span/text()').extract_first()
+        log.msg('page_num is %s' % page_num, level=log.INFO)
         for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
             item_final = SightItem()
             item_final['title'] = item['title']
@@ -77,23 +77,23 @@ class SightSpider(scrapy.Spider):
             item_final['category'] = item['category']
             img_src = option.xpath('a/@href').extract_first()
             result = re.search(r'.*objurl=(http.*?)&.*', img_src).groups()[0]
-            img_src = urllib.unquote(urllib.unquote(result)).encode('utf-8')
+            img_src = urllib.unquote(result).encode('utf-8')
             item['url'] = img_src
             if img_src is None or len(img_src) == 0:
                 item['url'] = 'url_null'
                 log.msg('img_src is null==============' + img_src, level=log.INFO)
             item_final['url'] = item['url']
             log.msg('img_src in line 61***********' + img_src + '; type: %s ' % type(img_src), log.INFO)
-            log.msg('img_src: ' + img_src + ' at line 76', level=log.INFO)
-            log.msg('run out picture_parse at line 77', level=log.INFO)
+            log.msg('run out picture_parse at line 92', level=log.INFO)
             yield item
 
-        if path and self.page_num < 3:
-            self.page_num += 1
-            yield scrapy.Request(url, meta={'item': item, 'splash': {
-                'endpoint': 'render.html',
-                'args': {'wait': 0.5}
-            }
+        if path and page_num <= PAGE_NUM:
+            log.msg('***************path**************\r\n' + path, level=log.INFO)
+            yield scrapy.Request(url, meta={'item': item,
+                                            'splash': {
+                                                'endpoint': 'render.html',
+                                                'args': {'wait': 0.5}
+                                            }
                                             }, callback=self.picture_parse)
 
-    # def next_page_parse(self, response):
+            # def next_page_parse(self, response):
