@@ -104,22 +104,49 @@ landmark = [u'上海中心大厦',
             u'平安大厦',
             u'君临天下']
 
+Editors_pick = [
+    u'岩窟教堂',
+    u'泰姬陵',
+    u'阿卡尔·塔拜特宫',
+    u'肯尼亚木雕',
+    u'坦桑石',
+    u'埃及历史博物馆',
+    u'狮子岩',
+    u'佛牙寺',
+    u'布道石',
+    u'挪威王宫',
+    u'奥斯陆市政厅',
+]
 
-def google_geo_api():
-    key = "自己去google geocoding申请"
-    url = "https://maps.googleapis.com/maps/api/geocode/json?address=平安国际金融中心&key=%s" % (key)
 
-    response = urllib2.urlopen(url)
+def google_geo_api(sight_name):
+    sight_name = sight_name.decode('utf-8')
+    key = "自行申请api"
+    url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (sight_name, key)
+    print 'url: %s' % url
+    response = urllib2.urlopen(url.encode('utf-8'))
     result = response.read()
-    # json_text = json.loads(result)
-    print ('json_text: %s' % result)
-    # lng = json_text.get('geometry')
-    # print ('lng: %s' % lng)
+    json_loads = json.loads(result)
+    if json_loads.get('status') == 'OK':
+        location = json_loads.get('results')[0].get('geometry').get('location')
+        lat = location.get('lat')
+        lat = float('%.2f' % lat)
+        lng = location.get('lng')
+        lng = float('%.2f' % lng)
+        print ('lat: %s\r\n lng %s' % (lat, lng))
+        return lng, lat
+    else:
+        log.msg('There is no result about lat and lng')
+        return 1, 1
+        # json_text = json.loads(result)
+        # lng = json_text.get('geometry')
+        # print ('lng: %s' % lng)
 
 
 def baidu_geo_api(sight_name):
     sight_name = sight_name.decode('utf-8')
-    url = 'http://api.map.baidu.com/geocoder/v2/?output=json&address=%s&ak=自己去baidu geocoding申请' % sight_name
+    ak = '自行申请api'
+    url = 'http://api.map.baidu.com/geocoder/v2/?output=json&address=%s&ak=%s' % (sight_name, ak)
     log.msg('run into baidu_geo_api at line 123, url: ' + url, log.INFO)
     response = urllib2.urlopen(url.encode('utf-8'))
     result = response.read()
@@ -149,4 +176,6 @@ def json_process():
 
 
 if __name__ == '__main__':
-    baidu_geo_api('周大福中心')
+    google_geo_api('上海中心大厦')
+    # lng, lat = baidu_geo_api('上海中心大厦')
+    # print lng, '\r\n', lat

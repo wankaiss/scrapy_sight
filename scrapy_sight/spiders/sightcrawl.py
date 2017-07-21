@@ -33,7 +33,7 @@ class SightSpider(scrapy.Spider):
             item['category'] = u'中国地标建筑'
             item['title'] = build.encode('utf-8')
             if lng == 1 or lat == 1:
-                log.msg('no landmark found: ' + 'at line 33,' + build, level=log.INFO)
+                log.msg('no landmark found: ' + 'at line 36,' + build, level=log.INFO)
                 continue
             baike_url = 'https://baike.baidu.com/item/%s' % build
             yield scrapy.Request(baike_url, meta={'item': item}, callback=self.content_parse)
