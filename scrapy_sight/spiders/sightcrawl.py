@@ -2,13 +2,19 @@
 import scrapy
 from ..items import SightItem
 import re
-from ..geo_api import baidu_geo_api, landmark, Editors_pick, google_geo_api
+from ..geo_api import baidu_geo_api, google_geo_api
+from ..landmark import landmark, Editors_pick
+from pypinyin import lazy_pinyin
 from scrapy import log
 import urllib
 from ..settings import PAGE_NUM
+from ..picture_utils import save_img, jpg_test
 
 
 class SightSpider(scrapy.Spider):
+
+    def __init__(self):
+        self.id_num = 9000000001L
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -24,14 +30,17 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in Editors_pick:
+        for build in landmark[0:2]:
+            self.id_num += 1
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
-            lng, lat = google_geo_api(build.encode('utf-8'))
+            lng, lat = baidu_geo_api(build.encode('utf-8'))
             item['lng'] = lng
             item['lat'] = lat
-            item['category'] = u'中国地标建筑'
+            item['category'] = u'地标建筑'
             item['title'] = build.encode('utf-8')
+            pinyin = lazy_pinyin(build)
+            item['pinyin'] = ''.join(pinyin).upper()
             if lng == 1 or lat == 1:
                 log.msg('no landmark found: ' + 'at line 36,' + build, level=log.INFO)
                 continue
@@ -68,7 +77,7 @@ class SightSpider(scrapy.Spider):
         url = host_address.encode('utf-8') + path
         page_num = response.xpath('//*[@id="page"]/strong/span/text()').extract_first()
         log.msg('page_num is %s' % page_num, level=log.INFO)
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:5]:
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
@@ -79,6 +88,11 @@ class SightSpider(scrapy.Spider):
             result = re.search(r'.*objurl=(http.*?)&.*', img_src).groups()[0]
             img_src = urllib.unquote(result).encode('utf-8')
             item['url'] = img_src
+            print 'img_src: %s ========================****==============' % img_src
+            img_url = jpg_test(img_url=img_src)
+            print 'img_url is: %s ****************************' % img_url
+            if img_url is not None:
+                save_img(img_url=img_url, id_num=self.id_num)
             if img_src is None or len(img_src) == 0:
                 item['url'] = 'url_null'
                 log.msg('img_src is null==============' + img_src, level=log.INFO)
@@ -87,7 +101,7 @@ class SightSpider(scrapy.Spider):
             log.msg('run out picture_parse at line 92', level=log.INFO)
             yield item
 
-        if path and page_num <= PAGE_NUM:
+        if path and page_num < PAGE_NUM:
             log.msg('***************path**************\r\n' + path, level=log.INFO)
             yield scrapy.Request(url, meta={'item': item,
                                             'splash': {
