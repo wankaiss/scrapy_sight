@@ -30,7 +30,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in landmark[0:2]:
+        for build in landmark:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             lng, lat = baidu_geo_api(build.encode('utf-8'))
@@ -78,7 +78,7 @@ class SightSpider(scrapy.Spider):
         url = host_address.encode('utf-8') + path
         page_num = response.xpath('//*[@id="page"]/strong/span/text()').extract_first()
         log.msg('page_num is %s' % page_num, level=log.INFO)
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:5]:
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
