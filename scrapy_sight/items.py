@@ -18,6 +18,7 @@ class SightItem(scrapy.Item):
     lng = scrapy.Field()
     lat = scrapy.Field()
     pinyin = scrapy.Field()
+    id_num = scrapy.Field()
 
 
 class ProxyIp(scrapy.Item):

@@ -14,7 +14,7 @@ from ..picture_utils import save_img, jpg_test
 class SightSpider(scrapy.Spider):
 
     def __init__(self):
-        self.id_num = 9000000001L
+        self.id_num = 9000000001
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -31,12 +31,13 @@ class SightSpider(scrapy.Spider):
 
     def parse(self, response):
         for build in landmark[0:2]:
-            self.id_num += 1
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             lng, lat = baidu_geo_api(build.encode('utf-8'))
             item['lng'] = lng
             item['lat'] = lat
+            item['id_num'] = self.id_num
+            self.id_num += 1L
             item['category'] = u'地标建筑'
             item['title'] = build.encode('utf-8')
             pinyin = lazy_pinyin(build)
@@ -92,7 +93,8 @@ class SightSpider(scrapy.Spider):
             img_url = jpg_test(img_url=img_src)
             print 'img_url is: %s ****************************' % img_url
             if img_url is not None:
-                save_img(img_url=img_url, id_num=self.id_num)
+                print 'id_num: %s' % item['id_num']
+                save_img(img_url=img_url, id_num=item['id_num'])
             if img_src is None or len(img_src) == 0:
                 item['url'] = 'url_null'
                 log.msg('img_src is null==============' + img_src, level=log.INFO)
