@@ -67,7 +67,9 @@ def save_img(img_url=None, file_path=None, id_num=9000000001L):
         file_suffix = os.path.splitext(img_url)[1]
         # 拼接图片名（包含路径）
         filename = '{}{}{}{}'.format(file_path, os.sep, file_name, file_suffix)
-        # 下载图片，并保存到文件夹中
+        # 下载图片，并保存到文件夹中, 设置超时为15秒
+        import socket
+        socket.setdefaulttimeout(20)
         urllib.urlretrieve(img_url, filename=filename)
         saved_img = file_path + str(file_name) + file_suffix
         script_dir = inspect.getfile(inspect.currentframe())
