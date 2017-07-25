@@ -30,7 +30,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in Editors_pick4[0:1]:
+        for build in Editors_pick4:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             if baidu_geo_api(build.encode('utf-8')) is not None:
