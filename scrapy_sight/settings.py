@@ -194,4 +194,4 @@ PROXIES = [
 ]
 
 # Every page has 20 data
-PAGE_NUM = u'2'
+PAGE_NUM = u'3'

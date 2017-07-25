@@ -3,7 +3,7 @@ import scrapy
 from ..items import SightItem
 import re
 from ..geo_api import baidu_geo_api, google_geo_api
-from ..landmark import landmark, Editors_pick
+from ..landmark import Editors_pick4
 from pypinyin import lazy_pinyin
 from scrapy import log
 import urllib
@@ -14,7 +14,7 @@ from ..picture_utils import save_img, jpg_test
 class SightSpider(scrapy.Spider):
 
     def __init__(self):
-        self.id_num = 9000000001
+        self.id_num = 9000040001
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -30,7 +30,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in landmark:
+        for build in Editors_pick4:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             lng, lat = baidu_geo_api(build.encode('utf-8'))
@@ -53,8 +53,16 @@ class SightSpider(scrapy.Spider):
         item = response.meta['item']
         result = response.xpath(
             '//div[@class="main-content"]/div[@class="lemma-summary"]/div[@class="para"]').extract()  # 大厦描述
-        pattern = re.compile(r'<[^>]+>', re.S)
-        description = pattern.sub('', result[0]).encode('utf-8')
+        try:
+            pattern = re.compile(r'<[^>]+>', re.S)
+            if len(result) != 0:
+                description = pattern.sub('', result[0]).encode('utf-8')
+            else:
+                description = 'description_null'
+        except IndexError as e:
+            log.msg('No content of %s;error: %s' % (result, str(e)))
+        except Exception as e:
+            log.msg('content_parse exception: %s' % str(e))
         if len(result) == 0:
             description = 'description_null'
             log.msg('description_null in line 45', level=log.INFO)
