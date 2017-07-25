@@ -70,37 +70,49 @@ def save_img(img_url=None, file_path=None, id_num=9000000001L):
         # 下载图片，并保存到文件夹中, 设置超时为20秒
         import socket
         socket.setdefaulttimeout(20)
+        print 'function save_img() at line 73, img_url is: %s' % img_url
         urllib.urlretrieve(img_url, filename=filename)
         saved_img = file_path + str(file_name) + file_suffix
         script_dir = inspect.getfile(inspect.currentframe())
-        print 'start resize picture from save_img at line 69' + ' in ' + script_dir
-        img_resize(img_url=saved_img)
+        print 'saved_img is: %s\n' % saved_img
+        print 'start resize picture from save_img at line 76' + ' in ' + script_dir
+        img_resize(saved_img)
     except IOError as e:
-        print 'file operated failed', e
+        print 'file operated failed: {0}, img_url is: {1}'.format(e, img_url)
     except Exception as e:
-        print 'Exception：', e
+        print 'Exception: {0}, img_url is: {1}'.format(e, img_url)
 
 
-def img_resize(img_url=None):
+def img_resize(img_path=None):
     """
+    :param img_path: 
     :description: 对图片进行比例缩放
     :param img_url: 
     :return: 
     """
+    script_dir = 'script_dir is null'
+    print 'start image resize, img_url: %s at line 93' % img_path
     try:
-        if img_url is None:
-            script_dir = inspect.getfile(inspect.currentframe())
-        original_image = Image.open(img_url)
+        script_dir = inspect.getfile(inspect.currentframe())
+        original_image = Image.open(img_path)
         original_size = original_image.size
         print original_size
-        new_width = 299
-        new_height = new_width * (int(original_size[1]) / int(original_size[0]))
-        new_image = original_image.resize((new_width, new_height), Image.ANTIALIAS)
-        print new_image
-        new_image.save(img_url)
+        if original_size[1] > original_size[0]:
+            new_width = float('%f' % 299)
+            new_height = new_width * (float(original_size[1]) / float(original_size[0]))
+            new_image = original_image.resize((int(new_width), int(new_height)), Image.ANTIALIAS)
+            print new_image
+            new_image.save(img_path)
+        else:
+            new_height = float('%f' % 299)
+            new_width = new_height * (float(original_size[0]) / float(original_size[1]))
+            new_image = original_image.resize((int(new_width), int(new_height)), Image.ANTIALIAS)
+            print new_image
+            new_image.save(img_path)
     except Exception as e:
-        print 'img_resize exception: ' + str(e) + 'at ' + script_dir
+        print 'img_resize exception: ' + str(e) + ' at ' + script_dir
 
 
 if __name__ == '__main__':
-    jpg_test(img_url='http://image.tupian114.com/20140430/15025135.jpg')
+    save_img(img_url='http://imgsrc.baidu.com/image/c0%3Dshijue1%2C0%2C0%2C294%2C40/sign=27349e8f53ee3d6d36cb8f882b7f0757/54fbb2fb43166d22394398bc4c2309f79052d2e6.jpg')
+    print ''

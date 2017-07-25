@@ -8,13 +8,13 @@ from pypinyin import lazy_pinyin
 from scrapy import log
 import urllib
 from ..settings import PAGE_NUM
-from ..picture_utils import save_img, jpg_test
+from ..picture_utils import save_img, jpg_test, img_resize
 
 
 class SightSpider(scrapy.Spider):
 
     def __init__(self):
-        self.id_num = 9000040002
+        self.id_num = 9000040001
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -30,7 +30,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in Editors_pick4:
+        for build in Editors_pick4[0:1]:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             if baidu_geo_api(build.encode('utf-8')) is not None:
@@ -81,7 +81,7 @@ class SightSpider(scrapy.Spider):
         url = host_address.encode('utf-8') + path
         page_num = response.xpath('//*[@id="page"]/strong/span/text()').extract_first()
         log.msg('page_num is %s' % page_num, level=log.INFO)
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:1]:
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
@@ -94,10 +94,13 @@ class SightSpider(scrapy.Spider):
             item['url'] = img_src
             print 'img_src: %s ========================****==============' % img_src
             img_url = jpg_test(img_url=img_src)
-            print 'img_url is: %s ****************************' % img_url
-            if img_url is not None:
+            print 'function jpg_test img_url is: %s ****************************' % img_url
+            # if img_url is not None:
+            try:
                 print 'id_num: %s' % item['id_num']
                 save_img(img_url=img_url, id_num=item['id_num'])
+            except TypeError as e:
+                log.msg('img url is NoneType in function picture_parse at line 103: {0}'.format(e), level=log.INFO)
             if img_src is None or len(img_src) == 0:
                 item['url'] = 'url_null'
                 log.msg('img_src is null==============' + img_src, level=log.INFO)
