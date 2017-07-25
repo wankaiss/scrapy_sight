@@ -14,7 +14,7 @@ from ..picture_utils import save_img, jpg_test
 class SightSpider(scrapy.Spider):
 
     def __init__(self):
-        self.id_num = 9000040001
+        self.id_num = 9000040002
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -33,7 +33,10 @@ class SightSpider(scrapy.Spider):
         for build in Editors_pick4:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
-            lng, lat = baidu_geo_api(build.encode('utf-8'))
+            if baidu_geo_api(build.encode('utf-8')) is not None:
+                lng, lat = baidu_geo_api(build.encode('utf-8'))
+            else:
+                lng, lat = 1, 1
             item['lng'] = lng
             item['lat'] = lat
             item['id_num'] = self.id_num
@@ -53,19 +56,11 @@ class SightSpider(scrapy.Spider):
         item = response.meta['item']
         result = response.xpath(
             '//div[@class="main-content"]/div[@class="lemma-summary"]/div[@class="para"]').extract()  # 大厦描述
-        try:
+        if len(result) != 0:
             pattern = re.compile(r'<[^>]+>', re.S)
-            if len(result) != 0:
-                description = pattern.sub('', result[0]).encode('utf-8')
-            else:
-                description = 'description_null'
-        except IndexError as e:
-            log.msg('No content of %s;error: %s' % (result, str(e)))
-        except Exception as e:
-            log.msg('content_parse exception: %s' % str(e))
-        if len(result) == 0:
+            description = pattern.sub('', result[0]).encode('utf-8')
+        else:
             description = 'description_null'
-            log.msg('description_null in line 45', level=log.INFO)
         item['description'] = description
         picture_url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&word=%s&ic=0&width=0&height=0' % item[
             'title'].decode('utf-8')
@@ -86,7 +81,7 @@ class SightSpider(scrapy.Spider):
         url = host_address.encode('utf-8') + path
         page_num = response.xpath('//*[@id="page"]/strong/span/text()').extract_first()
         log.msg('page_num is %s' % page_num, level=log.INFO)
-        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]'):
+        for option in response.xpath('//div[@id="imgid"]/ul[@class="imglist"]/li[@class="imgitem"]')[0:1]:
             item_final = SightItem()
             item_final['title'] = item['title']
             item_final['lng'] = item['lng']
