@@ -1,0 +1,21 @@
+@startuml
+(*)  --> [http://you.ctrip.com/place/] "攻略目的地"
+--> [http://you.ctrip.com/place/thailand100021.html] "泰国"
+--> ===B1===
+--> [/sight/thailand100021.html] "景点"
+--> [/countrysightlist/thailand100021.html] "更多泰国景点"
+--> [/sight/bangkok191/7290.html] "大皇宫"
+--> ===B2===
+===B1=== --> [/restaurant/thailand100021.html] "美食"
+--> [/countryrestaurantlist/thailand100021.html] "更多泰国餐厅"
+--> [/restaurant/chiangmai209.html] "清迈"
+--> [/food/chiangmai209/455195.html] "必吃餐馆"
+--> ===B2===
+===B1=== --> [/shopping/thailand100021.html] "购物"
+--> [/districtshop/thailand100021.html] "更多泰国购物地"
+--> [/place/phuket364.html] "普吉岛"
+--> [/shopping/phuket364.html] "普吉岛购物"
+--> [/shopping/phuket364/1356122.html] "普吉岛江西冷百货"
+--> ===B2===
+--> (*)
+@enduml

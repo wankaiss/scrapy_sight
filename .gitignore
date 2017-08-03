@@ -1,4 +1,4 @@
-scrapy_sight/.idea/
+.idea/
 scrapy_sight/__init__.pyc
 scrapy_sight/items.pyc
 scrapy_sight/middlewares.pyc
