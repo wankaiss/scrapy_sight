@@ -22,6 +22,12 @@ class CtripSpider(scrapy.Spider):
             })
 
     def parse(self, response):
+        """
+        :description
+                place地方
+        :param response: 
+        :return: 
+        """
         description = response.xpath('//*[@id="journals-panel-items"]/dl[3]/dd/ul/li[1]/a[1]/@href').extract()
         # pattern = re.compile(r'<[^>]+>', re.S)
         if len(description) != 0:
@@ -37,6 +43,12 @@ class CtripSpider(scrapy.Spider):
             }, callback=self.place_parse)
 
     def place_parse(self, response):
+        """
+        :description
+                区域选择
+        :param response: 
+        :return: 
+        """
         path = response.xpath('/html/body/div[4]/div/div/ul/li[5]/a/@href').extract()
         if len(path) != 0:
             url_path = base_url + path[0]
@@ -49,6 +61,12 @@ class CtripSpider(scrapy.Spider):
             })
 
     def sight_parse(self, response):
+        """
+        :description
+                泰国旅游景点
+        :param response: 
+        :return: 
+        """
         path = response.xpath('/html/body/div[5]/div/div[2]/div[3]/div[2]/div[11]/span/a/@href').extract()
         if len(path) != 0:
             url_path = base_url + path[0]
@@ -61,6 +79,12 @@ class CtripSpider(scrapy.Spider):
             })
 
     def single_sight_parse(self, response):
+        """
+        :description
+                泰国各地景点
+        :param response: 
+        :return: 
+        """
         path = response.xpath('/html/body/div[5]/div/div[2]/div/div[2]/div[1]/dl/dt/a/@href').extract()
         url_path = base_url + path[0]
         print 'single_sight_parse: ' + url_path
@@ -72,6 +96,12 @@ class CtripSpider(scrapy.Spider):
         })
 
     def real_sight_parse(self, response):
+        """
+        :description
+                泰国单一景点
+        :param response: 
+        :return: 
+        """
         path = response.xpath('/html/body/div[4]/div/div/ul/li[5]/a/@href').extract()
         url_path = base_url + path[0]
         print 'real_sight_parse: ' + url_path
@@ -83,6 +113,12 @@ class CtripSpider(scrapy.Spider):
             })
 
     def sight_seeing_parse(self, response):
+        """
+        :description
+                清迈所有景点
+        :param response: 
+        :return: 
+        """
         path = response.xpath('/html/body/div[5]/div/div[2]/div[2]/div[3]/div[1]/div[2]/dl/dt/a/@href').extract()
         url_path = base_url + path[0]
         print 'sight_seeing_parse: ' + url_path
@@ -96,6 +132,7 @@ class CtripSpider(scrapy.Spider):
     def sight_into_parse(self, response):
         """
         :description 
+                详细景点
                 /html/body/div[3]/div/div[1]/div[4]/div[1]/ul/li # 亮点
                 /html/body/div[4]/div/div[1]/div[4]/div[2]/div[2]/div # 描述
         :param response: 
