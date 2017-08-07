@@ -21,10 +21,11 @@ class TestSpider(scrapy.Spider):
             # item['url'] = result
             # result = str(result)
             # result = result.replace('<a\s*>', '')
-            print ('%s:%s' % (ip, port))
+            print ('{"ip_port": "%s:%s", "user_pass": ""},' % (ip, port))
         # yield scrapy.Request(url='http://www.meet99.com/jingdian-jiuzhaigoufengjingqu.html', meta={'item': item}, callback=self.send_img, )
 
     def send_img(self, response):
         item = response.meta['item']
         item['title'] = 'title'
+        {'ip_port': '127.0.0.1:1080', 'user_pass': ''},
         print ('item: %s' % item)
