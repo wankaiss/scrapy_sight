@@ -6,7 +6,7 @@ from ..items import CtripSightItem
 
 
 class EatTestSpider1(scrapy.Spider):
-    name = 'pure_test01'
+    name = 'pure_test02'
     allowed_domains = ['ctrip.com']
     start_urls = ["http://you.ctrip.com/place"]
 

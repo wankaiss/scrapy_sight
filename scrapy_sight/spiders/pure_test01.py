@@ -16,7 +16,7 @@ class EatTestSpider1(scrapy.Spider):
                 # 'item': ctripItem,
                 'splash': {
                     'endpoint': 'render.html',
-                    'args': {'wait': 1}
+                    'args': {'wait': 0.5}
                 }
             })
 
@@ -37,7 +37,7 @@ class EatTestSpider1(scrapy.Spider):
         #                 'item': ctripItem,
         #                 'splash': {
         #                     'endpoint': 'render.html',
-        #                     'args': {'wait': 1}
+        #                     'args': {'wait': 0.5}
         #                 }
         #             }, callback=self.sight_country_parse)
         """城市"""
@@ -57,7 +57,7 @@ class EatTestSpider1(scrapy.Spider):
                         'item': ctripItem,
                         'splash': {
                             'endpoint': 'render.html',
-                            'args': {'wait': 1}
+                            'args': {'wait': 0.5}
                         }
                     }, callback=self.sight_city_parse)
 
@@ -92,7 +92,7 @@ class EatTestSpider1(scrapy.Spider):
                 'item': ctripItem,
                 'splash': {
                     'endpoint': 'render.html',
-                    'args': {'wait': 1}
+                    'args': {'wait': 0.5}
                 }
             }, callback=self.scenic_parse)
         else:
@@ -131,7 +131,7 @@ class EatTestSpider1(scrapy.Spider):
                 'item': ctripItem,
                 'splash': {
                     'endpoint': 'render.html',
-                    'args': {'wait': 1}
+                    'args': {'wait': 0.5}
                 }
             }, callback=self.restaurant_parse)
         else:
@@ -155,7 +155,7 @@ class EatTestSpider1(scrapy.Spider):
             'item': ctripItem,
             'splash': {
                 'endpoint': 'render.html',
-                'args': {'wait': 1}
+                'args': {'wait': 0.5}
             }
         }, callback=self.country_list_parse)
 
@@ -181,7 +181,7 @@ class EatTestSpider1(scrapy.Spider):
                 'item': ctripItem,
                 'splash': {
                     'endpoint': 'render.html',
-                    'args': {'wait': 1}
+                    'args': {'wait': 0.5}
                 }
             }, callback=self.restaurant_parse)
 
@@ -195,7 +195,7 @@ class EatTestSpider1(scrapy.Spider):
                 'item': ctripItem,
                 'splash': {
                     'endpoint': 'render.html',
-                    'args': {'wait': 1}
+                    'args': {'wait': 0.5}
                 }
             })
 
@@ -212,7 +212,7 @@ class EatTestSpider1(scrapy.Spider):
                     'item': ctripItem,
                     'splash': {
                         'endpoint': 'render.html',
-                        'args': {'wait': 1}
+                        'args': {'wait': 0.5}
                     }
                 })
 
