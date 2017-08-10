@@ -3,7 +3,7 @@ import scrapy
 from ..items import SightItem
 import re
 from ..geo_api import baidu_geo_api, google_geo_api
-from ..landmark import Editors_pick4
+from ..foreigh_landmark import foreigh_7
 from pypinyin import lazy_pinyin
 from scrapy import log
 import urllib
@@ -14,7 +14,7 @@ from ..picture_utils import save_img, jpg_test, img_resize
 class SightSpider(scrapy.Spider):
 
     def __init__(self):
-        self.id_num = 9000040001
+        self.id_num = 9000170001
 
     name = 'sight'
     allowed_domains = ['baidu.com']
@@ -30,7 +30,7 @@ class SightSpider(scrapy.Spider):
             })
 
     def parse(self, response):
-        for build in Editors_pick4:
+        for build in foreigh_7:
             item = SightItem()
             log.msg('build: ' + build, level=log.INFO)
             if baidu_geo_api(build.encode('utf-8')) is not None:
@@ -41,7 +41,7 @@ class SightSpider(scrapy.Spider):
             item['lat'] = lat
             item['id_num'] = self.id_num
             self.id_num += 1L
-            item['category'] = u'地标建筑'
+            item['category'] = u'国外地标建筑'
             item['title'] = build.encode('utf-8')
             pinyin = lazy_pinyin(build)
             item['pinyin'] = ''.join(pinyin).upper()

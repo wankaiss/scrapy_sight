@@ -8,22 +8,22 @@ from ..items import CtripSightItem
 class EatTestSpider1(scrapy.Spider):
     name = 'pure_test01'
     allowed_domains = ['ctrip.com']
-    start_urls = ["http://you.ctrip.com/place/lijiang31.html"]
+    start_urls = ["http://you.ctrip.com/food/lijiang32/142777.html"]
 
     def start_requests(self):
         for url in self.start_urls:
-            yield scrapy.Request(url, self.parse, meta={
-                # 'item': ctripItem,
-                'splash': {
-                    'endpoint': 'render.html',
-                    'args': {'wait': 0.5}
-                }
-            })
+            yield scrapy.Request(url, self.specific_restaurant_parse, meta={
+                        # 'item': ctripItem,
+                        'splash': {
+                            'endpoint': 'render.html',
+                            'args': {'wait': 0.5}
+                        }
+                    })
 
     def parse(self, response):
         ctripItem = CtripSightItem()
         """国家"""
-        # for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:3]:
+        # for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[2:3]:
         #     print u'continent: ' + sel.xpath('dt/text()').extract()[0]
         #     ctripItem['continent'] = sel.xpath('dt/text()').extract()[0]
         #     for sec_sel in sel.xpath('dd/ul/li')[0:1]:
@@ -41,7 +41,7 @@ class EatTestSpider1(scrapy.Spider):
         #                 }
         #             }, callback=self.sight_country_parse)
         """城市"""
-        for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:1]:
+        for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:2]:
             print u'continent: ' + sel.xpath('dt/text()').extract()[0]
             ctripItem['continent'] = sel.xpath('dt/text()').extract()[0]
             for sec_sel in sel.xpath('dd/ul/li')[0:1]:
@@ -149,9 +149,14 @@ class EatTestSpider1(scrapy.Spider):
         # more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[3]/div[1]/div[11]/span/a/@href').extract()
         # 美食
         more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[4]/div[1]/div[11]/span/a/@href').extract()
+        if len(more_scenic) != 0:
+            more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[4]/div[1]/div[11]/span/a/@href').extract()
+        else:
+            more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[1]/div[1]/div[11]/span/a/@href').extract()
         #  购物
-        # more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[1]/div[1]/div[11]/span/a/@href').extract()
-        yield scrapy.Request(url='http://you.ctrip.com' + more_scenic[0], meta={
+        url = 'http://you.ctrip.com' + more_scenic[0]
+        print url
+        yield scrapy.Request(url=url, meta={
             'item': ctripItem,
             'splash': {
                 'endpoint': 'render.html',
@@ -169,7 +174,6 @@ class EatTestSpider1(scrapy.Spider):
         ctripItem = response.meta['item']
         for sel in response.xpath('/html/body/div[5]/div/div[1]/div/div[1]/div')[0:1]:  # 遍历国家里面城市列表
             path = sel.xpath('div/a/@href').extract()[0]
-            # '/html/body/div[5]/div/div[1]/div/div[1]/div[1]/dl/dt/a'
             city = sel.xpath('dl/dt/a/text()').extract()
             if len(city) != 0:
                 ctripItem['city'] = city[0]
@@ -189,6 +193,11 @@ class EatTestSpider1(scrapy.Spider):
         ctripItem = response.meta['item']
         path = response.xpath('/html/body/div[5]/div/div[1]/div[3]/div[1]/span/a/@href').extract()
         if len(path) != 0:
+            path = response.xpath('/html/body/div[5]/div/div[1]/div[3]/div[1]/span/a/@href').extract()
+        else:
+            path = response.xpath('/html/body/div[5]/div/div[2]/div[3]/div[1]/span/a/@href').extract()
+        print path
+        if len(path) != 0:
             url = 'http://you.ctrip.com' + path[0]
             print url
             yield scrapy.Request(url, callback=self.restaurant_list_parse, meta={
@@ -201,7 +210,8 @@ class EatTestSpider1(scrapy.Spider):
 
     def restaurant_list_parse(self, response):
         ctripItem = response.meta['item']
-        for sel in response.xpath('/html/body/div[5]/div/div[1]/div/div[3]/div')[0:1]:
+        for sel in response.xpath('//*[@class="list_mod2"]')[0:1]:
+            # /html/body/div[5]/div/div[2]/div/div[3]/div[1]
             path = sel.xpath('div[@class="rdetailbox"]/dl/dt/a/@href').extract()
             print 'run into restaurant_list_parse'
             print path
@@ -217,7 +227,7 @@ class EatTestSpider1(scrapy.Spider):
                 })
 
     def specific_restaurant_parse(self, response):
-        ctripItem = response.meta['item']
+        # ctripItem = response.meta['item']
         pattern = re.compile(r'<[^>]+>', re.S)
         title = response.xpath('/html/body/div[3]/div[1]/div/div[1]/h1/text()').extract()
         description = response.xpath('/html/body/div[4]/div/div[1]/div[3]/div[1]/div[1]').extract()  # 描述
@@ -225,28 +235,39 @@ class EatTestSpider1(scrapy.Spider):
             description = pattern.sub('', description[0]).strip()
         else:
             description = u'无数据'
-        people_averaged = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[1]/span[1]/em/text()').extract()[0]
-        # people_averaged = pattern.sub('', people_averaged).strip()
-        special_food = response.xpath('/html/body/div[4]/div/div[1]/div[3]/div[1]/div[1]/p').extract()[0]  # 食物
-        special_food = pattern.sub('', special_food).strip().replace(' ', '')
-        mobile = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[3]/span[1]/text()').extract()[0]  # 电话
-        address = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[4]/span[1]/text()').extract()[0]  # 地址
-        open_time = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[5]/span[1]/text()').extract()[0]  # 营业时间
-        # print 'description: %s,\n special_food: %s,\n mobile: %s,\n address: %s,\n open_time: %s\n people_averaged:
-        #  %s' % ( description, special_food, mobile, address, open_time, title)
-        yield {
-            'title': title[0],
-            'description': description,
-            'people_averaged': people_averaged,
-            'special_food': special_food,
-            'mobile': mobile,
-            'address': address,
-            'open_time': open_time,
-            'continent': ctripItem['continent'],
-            'area': ctripItem['area'],
-            'country': ctripItem['country'],
-            'city': ctripItem['city']
-        }
+        print description
+        for sel in response.css('ul.s_sight_in_list li'):
+            name = sel.extract()
+            # name = sel.xpath('li/span[class="s_sight_classic"]').extract()
+            # value = sel.xpath('li/span[class="s_sight_con"]').extract()
+            # value = pattern.sub('', value[0])
+            # name = pattern.sub('', name[0])
+            print name
+            # print value
+            # span.s_sight_con
+        # people_averaged = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[1]/span[1]/em/text()').extract()[0]
+        # #                                 /html/body/div[4]/div/div[2]/div[1]/ul/li[1]/span[2]/em
+        # # people_averaged = pattern.sub('', people_averaged).strip()
+        # special_food = response.xpath('/html/body/div[4]/div/div[1]/div[3]/div[1]/div[1]/p').extract()[0]  # 食物
+        # special_food = pattern.sub('', special_food).strip().replace(' ', '')
+        # mobile = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[3]/span[1]/text()').extract()[0]  # 电话
+        # address = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[4]/span[1]/text()').extract()[0]  # 地址
+        # open_time = response.xpath('/html/body/div[4]/div/div[1]/div[1]/ul/li[5]/span[1]/text()').extract()[0]  # 营业时间
+        # # print 'description: %s,\n special_food: %s,\n mobile: %s,\n address: %s,\n open_time: %s\n people_averaged:
+        # #  %s' % ( description, special_food, mobile, address, open_time, title)
+        # yield {
+        #     'title': title[0],
+        #     'description': description,
+        #     'people_averaged': people_averaged,
+        #     'special_food': special_food,
+        #     'mobile': mobile,
+        #     'address': address,
+        #     'open_time': open_time,
+        #     # 'continent': ctripItem['continent'],
+        #     # 'area': ctripItem['area'],
+        #     # 'country': ctripItem['country'],
+        #     # 'city': ctripItem['city']
+        # }
 
 if __name__ == '__main__':
     print

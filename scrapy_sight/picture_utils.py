@@ -48,7 +48,7 @@ def save_img(img_url=None, file_path=None, id_num=9000000001L):
     if file_path is None:
         system = platform.system()
         if system == "Windows":
-            file_path = 'D:\\landmark\\' + str(id_num) + '\\'
+            file_path = 'D:\\foreign_landmark\\' + str(id_num) + '\\'
             print ("windows path")
         elif system == "Linux":
             file_path = '/opt/download/landmark/' + id_num + '/'

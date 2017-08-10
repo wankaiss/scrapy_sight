@@ -6,7 +6,7 @@ from scrapy import log
 
 def google_geo_api(sight_name):
     sight_name = sight_name.decode('utf-8')
-    key = ""
+    key = "AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k"
     url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (sight_name, key)
     print 'url: %s' % url
     response = urllib2.urlopen(url.encode('utf-8'))
@@ -30,7 +30,7 @@ def google_geo_api(sight_name):
 
 def baidu_geo_api(sight_name):
     sight_name = sight_name.decode('utf-8')
-    ak = ''
+    ak = 'qsQB3G3zIR1SvZ01bEIAMBHGbCCUhTgm'
     url = 'http://api.map.baidu.com/geocoder/v2/?output=json&address=%s&ak=%s' % (sight_name, ak)
     log.msg('run into baidu_geo_api at line 123, url: ' + url, log.INFO)
     try:
