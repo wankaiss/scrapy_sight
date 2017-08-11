@@ -7,18 +7,21 @@ from ..items import PoiItem
 
 
 class RestaurantSpider(scrapy.Spider):
-    page_num = 0
+    page_num = 2
     name = 'restaurant'
-    allowed_domains = ['google.com', 'googleapis.com']
-    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key'
-                  '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k']
+    allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
+    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key=']
 
     def start_requests(self):
+        """
+        :description
+           根据geoapi查询位置坐标       
+        :return: 
+        """
         for url in self.start_urls:
             item = PoiItem()
             city = u'上海'
-            url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key' \
-                  '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % city
+            url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key=' % city
             print 'start_url: ' + url
             item['city'] = city
             yield scrapy.Request(url, self.parse, meta={
@@ -26,6 +29,12 @@ class RestaurantSpider(scrapy.Spider):
             })
 
     def parse(self, response):
+        """
+        :description
+            根据查询到的坐标进行附近餐厅查找
+        :param response: 
+        :return: 
+        """
         status = response.xpath('//GeocodeResponse/status/text()').extract()
         if len(status) != 0 and status[0] == u'OK':
             item = response.meta['item']
@@ -33,37 +42,53 @@ class RestaurantSpider(scrapy.Spider):
             lng = response.xpath('//geometry/location/lng/text()').extract()[0]
             item['lat'] = lat
             item['lng'] = lng
-            attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml?language=zh_CN&location=%s,%s&radius=50000&type=restaurant&keyword=food&key=' % (lat, lng)
+            attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
+                             '?language=zh_CN&location=%s,' \
+                             '%s&radius=50000&type=restaurant&keyword=food&key=' % (lat, lng)
             print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
                 'item': item
             })
 
     def attraction_parse(self, response):
+        """
+        :description
+            对根据坐标查询到附近的饭店进行解析
+        :param response: 
+        :return: 
+        """
         print 'run into attraction_parse'
         status = response.xpath('//PlaceSearchResponse/status/text()').extract()
         if len(status) != 0 and status[0] == u'OK':
             item = response.meta['item']
-            for sel in response.xpath('/PlaceSearchResponse/result')[0:1]:
+            for sel in response.xpath('/PlaceSearchResponse/result')[0:10]:
                 place_id = sel.xpath('place_id/text()').extract()
-                detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language=zh_CN&placeid=%s&key' \
-                             '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % place_id[0]
+                detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
+                             '=zh_CN&placeid=%s&key=' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
                 })
-            next_page_token = response.xpath('/PlaceSearchResponse/next_page_token/text()').extract()
+            next_page_token = response.xpath(
+                '/PlaceSearchResponse/next_page_token/text()').extract()
             if self.page_num < 3:
                 print self.page_num
                 if len(next_page_token) != 0:
                     self.page_num += 1
-                    next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml?pagetoken=%s&key=' % \
+                    next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
+                                    '?pagetoken=%s&key=' % \
                                     next_page_token[0]
                     yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
                         'item': item
                     })
 
     def detail_parse(self, response):
+        """
+        :description
+            对饭店进行逐一解析
+        :param response: 
+        :return: 
+        """
         print 'run into detail_parse'
         item = response.meta['item']
         name = response.xpath('/PlaceDetailsResponse/result/name/text()').extract()
@@ -78,25 +103,54 @@ class RestaurantSpider(scrapy.Spider):
         else:
             address = u'暂无数据'
         item['address'] = address
-        mobile = response.xpath('/PlaceDetailsResponse/result/international_phone_number/text()').extract()
+        mobile = response.xpath(
+            '/PlaceDetailsResponse/result/international_phone_number/text()').extract()
         if len(mobile) != 0:
             mobile = mobile[0]
         else:
             mobile = u'暂无数据'
         item['mobile'] = mobile
-        open_hours = response.xpath('/PlaceDetailsResponse/result/opening_hours/weekday_text[1]/text()').extract()
+        open_hours = response.xpath('/PlaceDetailsResponse/result/opening_hours/weekday_text['
+                                    '1]/text()').extract()
         if len(open_hours) != 0:
             open_hours = open_hours[0]
+            open_hours = open_hours.replace(u'星期一: ', '')
         else:
             open_hours = u'暂无数据'
         item['open_hours'] = open_hours
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=&limit=1&indent=True&languages=zh_CN' % name
+        photo = response.xpath('/PlaceDetailsResponse/result/photo').extract()
+        photo_reference = []
+        if len(photo) != 0:
+            for sel_photo in response.xpath('/PlaceDetailsResponse/result/photo'):
+                result = sel_photo.xpath('photo_reference/text()').extract()[0]
+                photo_reference.append(result)
+        else:
+            photo_reference.append(u'暂无数据')
+        item['photo_reference'] = photo_reference
+        comment = []
+        review = response.xpath('/PlaceDetailsResponse/result/review').extract()
+        if len(review) != 0:
+            for sel_review in response.xpath('/PlaceDetailsResponse/result/review'):
+                result = sel_review.xpath('text/text()').extract()
+                if len(result) != 0:
+                    comment.append(result[0])
+        else:
+            comment = u'暂无数据'
+        item['comment'] = comment
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=&limit=1&indent=True&languages' \
+                        '=zh_CN' % name
         print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
             'item': item
         })
 
     def kg_search_parse(self, response):
+        """
+        :description
+            对饭店名字进行知识图谱
+        :param response: 
+        :return: 
+        """
         item = response.meta['item']
         result = response.body
         description = re.findall(r'"articleBody": (.*)?,', result)
@@ -104,11 +158,74 @@ class RestaurantSpider(scrapy.Spider):
             description = HanziConv.toSimplified(description[0])
         else:
             description = u'暂无数据'
-        print 'description: ' + description
+        item['description'] = description
+        subtitle = re.findall(r'"name":(.*)?,', result)
+        if len(subtitle) != 0:
+            subtitle = HanziConv.toSimplified(subtitle[0])
+        else:
+            subtitle = u'暂无数据'
+        item['subtitle'] = subtitle
+        baike_url = 'https://baike.baidu.com/item/%s' % item['name']
+        yield scrapy.Request(baike_url, callback=self.baike_parse, meta={
+            'item': item
+        })
+
+    def baike_parse(self, response):
+        item = response.meta['item']
+        list_result = response.css('.basicInfo-item.name').extract()
+        """这是对某个特色标签处理"""
+        recommend = u'暂无数据'
+        people_average = u'暂无数据'
+        if len(list_result) != 0:
+            for sel in response.css('.basicInfo-item.name'):
+                result = sel.extract()
+                # print result
+                name = sel.xpath('text()').extract()[0]
+                if name == u'特色菜':
+                    print name
+                    index = list_result.index(result)
+                    value_result = response.css('.basicInfo-item.value')[index].extract()
+                    recommend = re.sub(r'<[^>]+>', '', value_result).strip()
+                if name == u'人均价格':
+                    index = list_result.index(result)
+                    value_result = response.css('.basicInfo-item.value')[index].extract()
+                    people_average = re.sub(r'<[^>]+>', '', value_result).strip()
+                if name == u'营业时间':
+                    index = list_result.index(result)
+                    value_result = response.css('.basicInfo-item.value')[index].extract()
+                    open_hours = re.sub(r'<[^>]+>', '', value_result).strip()
+                    item['open_hours'] = open_hours
+        item['people_average'] = people_average
+        item['recommend'] = recommend
+        description = response.css('.lemma-summary').extract()
+        if len(description) != 0:
+            description = re.sub(r'<[^>]+>', '', description[0]).strip()
+            item['description'] = description
+        food_series = u'暂无数据'
+        div_result = response.css('.content .main-content div').extract()
+        for div_list in response.css('.content .main-content div'):
+            h_result = div_list.css('.para-title.level-2').extract()
+            if len(h_result) != 0:
+                for para_title in div_list.css('.para-title.level-2'):
+                    type_name = para_title.css('.title-text::text').extract()
+                    for i in type_name:
+                        if i == u'餐馆类型':
+                            food_series_div_index = div_result.index(h_result[0]) + 1
+                            food_series = div_result[food_series_div_index]
+                            food_series = re.sub(r'<[^>]+>', '', food_series).strip()
+        item['food_series'] = food_series
         yield {
             'name': item['name'],
             'address': item['address'],
             'mobile': item['mobile'],
             'open_hours': item['open_hours'],
-            'description': description
+            'description': item['description'],
+            'lat': item['lat'],
+            'lng': item['lng'],
+            'subtitle': item['subtitle'],
+            'photo_reference': item['photo_reference'],
+            'comment': item['comment'],
+            'recommend': item['recommend'],
+            'people_average': item['people_average'],
+            'food_series': item['food_series']
         }

@@ -19,7 +19,8 @@ import re
 # 下一页查找
 # https://maps.googleapis.com/maps/api/place/nearbysearch/xml?pagetoken=CpQCCwEAAFCS8K2flhLlVU4IcH_qp-y8NdvLGTcNHoLqnlw_lrybSqUltPWfTxdWqrdGVRap-KeT1W4sSBN-v17_PFj0Z-orgazinfSc91shspgQnkmPj5VZxZuxDlzS_t_o141WsY9WmEQF922D4JMwXhwl08fDGhQvRQZd6ZjCOi5KKksK4e-1VH5Xtb-fFSqTT6LNBpBUwnHpp1hQQ0ohi0Ixqs2smnGcwCSwAuaL97oBQ6AyMDIcBOI0AKopkkyIYoY50p5bADsq42zf70fBRMz9IoIAxNgiJdwCajlnrQI_Mk0QcOJoXiZi1eG1j0qEpMlcw8yRgsN3hxknAY1SjCmoQj5Le48t1WPXFpiC17uXjEItEhAKmHGWrlINvGARfxTzw3MdGhSs_xQRG4doj4AyJHEFzxXk0cBzjg&key=
 # 地点详情
-# https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJDTwzJEGuEmsRw4ifQGYDkww&key=
+# https://maps.googleapis.com/maps/api/place/details/json?language=zh_CN&placeid
+# =ChIJDTwzJEGuEmsRw4ifQGYDkww&key=
 # 根据photo-reference查找图片
 # https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=CmRaAAAApJSns__-0__gPovihJDzG2KFvxMEn11cfihtG8CxrAN774ZEtkJ3upySaqKy6RrPWWY3WIXwF6WBz5TII3g9Zs_XoIV_A0vzwMMyJPRlR18aL46GR4m7mbeOCvI3Jn8kEhBE6b0Lk2I0ocXawDSaP3nsGhQWpiYbcGvmwKL04tcYRD-7kBmX5w&key=
 # google geocoding
@@ -97,8 +98,7 @@ class google_poi_spder(scrapy.Spider):
         address = response.xpath('/PlaceDetailsResponse/result/formatted_address/text()').extract()
         mobile = response.xpath('/PlaceDetailsResponse/result/international_phone_number/text()').extract()
         open_hours = response.xpath('/PlaceDetailsResponse/result/opening_hours/weekday_text[1]/text()').extract()
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key' \
-                        '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k&limit=1&indent=True&languages=zh_CN' % name[0]
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=&limit=1&indent=True&languages=zh_CN' % name[0]
         print kg_search_url
         print name, address, mobile, open_hours
         yield scrapy.Request(kg_search_url, callback=self.kg_sarch_parse)

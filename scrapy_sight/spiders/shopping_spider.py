@@ -46,8 +46,8 @@ class ShoppingSpider(scrapy.Spider):
             item = response.meta['item']
             for sel in response.xpath('/PlaceSearchResponse/result')[0:1]:
                 place_id = sel.xpath('place_id/text()').extract()
-                detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language=zh_CN&placeid=%s&key' \
-                             '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % place_id[0]
+                detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
+                             '=zh_CN&placeid=%s&key=' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
@@ -87,6 +87,7 @@ class ShoppingSpider(scrapy.Spider):
         open_hours = response.xpath('/PlaceDetailsResponse/result/opening_hours/weekday_text[1]/text()').extract()
         if len(open_hours) != 0:
             open_hours = open_hours[0]
+            open_hours = open_hours.replace(u'星期一: ', '')
         else:
             open_hours = u'暂无数据'
         item['open_hours'] = open_hours
@@ -105,10 +106,18 @@ class ShoppingSpider(scrapy.Spider):
         else:
             description = u'暂无数据'
         print 'description: ' + description
+        subtitle = re.findall(r'"name":(.*)?,', result)
+        if len(subtitle) != 0:
+            subtitle = HanziConv.toSimplified(subtitle[0])
+        else:
+            subtitle = u'暂无数据'
         yield {
             'name': item['name'],
             'address': item['address'],
             'mobile': item['mobile'],
             'open_hours': item['open_hours'],
-            'description': description
+            'description': description,
+            'lat': item['lat'],
+            'lng': item['lng'],
+            'subtitle': subtitle
         }
