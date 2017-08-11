@@ -10,7 +10,7 @@ class RestaurantSpider(scrapy.Spider):
     page_num = 2
     name = 'restaurant'
     allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
-    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key=']
+    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k']
 
     def start_requests(self):
         """
@@ -21,7 +21,7 @@ class RestaurantSpider(scrapy.Spider):
         for url in self.start_urls:
             item = PoiItem()
             city = u'上海'
-            url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key=' % city
+            url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % city
             print 'start_url: ' + url
             item['city'] = city
             yield scrapy.Request(url, self.parse, meta={
@@ -44,7 +44,7 @@ class RestaurantSpider(scrapy.Spider):
             item['lng'] = lng
             attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
                              '?language=zh_CN&location=%s,' \
-                             '%s&radius=50000&type=restaurant&keyword=food&key=' % (lat, lng)
+                             '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % (lat, lng)
             print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
                 'item': item
@@ -64,7 +64,7 @@ class RestaurantSpider(scrapy.Spider):
             for sel in response.xpath('/PlaceSearchResponse/result')[0:10]:
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
-                             '=zh_CN&placeid=%s&key=' % place_id[0]
+                             '=zh_CN&placeid=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
@@ -76,7 +76,7 @@ class RestaurantSpider(scrapy.Spider):
                 if len(next_page_token) != 0:
                     self.page_num += 1
                     next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-                                    '?pagetoken=%s&key=' % \
+                                    '?pagetoken=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % \
                                     next_page_token[0]
                     yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
                         'item': item
@@ -135,9 +135,9 @@ class RestaurantSpider(scrapy.Spider):
                 if len(result) != 0:
                     comment.append(result[0])
         else:
-            comment = u'暂无数据'
+            comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
@@ -202,6 +202,7 @@ class RestaurantSpider(scrapy.Spider):
             description = re.sub(r'<[^>]+>', '', description[0]).strip()
             item['description'] = description
         food_series = u'暂无数据'
+        recommend_food = []
         div_result = response.css('.content .main-content div').extract()
         for div_list in response.css('.content .main-content div'):
             h_result = div_list.css('.para-title.level-2').extract()
@@ -213,11 +214,19 @@ class RestaurantSpider(scrapy.Spider):
                             food_series_div_index = div_result.index(h_result[0]) + 1
                             food_series = div_result[food_series_div_index]
                             food_series = re.sub(r'<[^>]+>', '', food_series).strip()
+                        if i == u'推荐菜':
+                            for td_list in response.css('.main-content table.table-view tr td'):
+                                td_result = td_list.extract()
+                                text_result = re.sub(r'<[^>]+>', '', td_result).strip()
+                                recommend_food.append(text_result)
+        if len(recommend_food) == 0:
+            recommend_food.append(u'暂无数据')
         item['food_series'] = food_series
         yield {
             'name': item['name'],
             'address': item['address'],
             'mobile': item['mobile'],
+            'city': item['city'],
             'open_hours': item['open_hours'],
             'description': item['description'],
             'lat': item['lat'],
@@ -227,5 +236,6 @@ class RestaurantSpider(scrapy.Spider):
             'comment': item['comment'],
             'recommend': item['recommend'],
             'people_average': item['people_average'],
-            'food_series': item['food_series']
+            'food_series': item['food_series'],
+            'recommend_food': item['recommend_food']
         }

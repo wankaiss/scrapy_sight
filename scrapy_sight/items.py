@@ -50,6 +50,7 @@ class PoiItem(scrapy.Item):
     photo_reference = scrapy.Field()
     comment = scrapy.Field()
     recommend = scrapy.Field()
+    recommend_food = scrapy.Field()
     people_average = scrapy.Field()
     subtitle = scrapy.Field()
     address = scrapy.Field()

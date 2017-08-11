@@ -80,7 +80,7 @@ class AttractionSpider(scrapy.Spider):
                 if len(next_page_token) != 0:
                     self.page_num += 1
                     next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-                                    '?pagetoken=%s&key=' % \
+                                    '?pagetoken=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % \
                                     next_page_token[0]
                     yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
                         'item': item
@@ -139,9 +139,9 @@ class AttractionSpider(scrapy.Spider):
                 if len(result) != 0:
                     comment.append(result[0])
         else:
-            comment = u'暂无数据'
+            comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
