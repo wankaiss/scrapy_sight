@@ -7,7 +7,7 @@ from scrapy import log
 def google_geo_api(sight_name):
     sight_name = sight_name.decode('utf-8')
     key = "AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k"
-    url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (sight_name, key)
+    url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY%s" % (sight_name, key)
     print 'url: %s' % url
     response = urllib2.urlopen(url.encode('utf-8'))
     result = response.read()

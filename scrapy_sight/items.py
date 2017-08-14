@@ -25,7 +25,7 @@ class CtripSightItem(scrapy.Item):
     continent = scrapy.Field()  # 洲
     area = scrapy.Field()  # 区域
     country = scrapy.Field()  # 国家
-    city = scrapy.Field()  # city
+    city = scrapy.Field()  # city.py
     scenic = scrapy.Field()  # 景点
     scenic_url = scrapy.Field()
     scenic_ticket = scrapy.Field()  # 景点门票
@@ -54,6 +54,7 @@ class PoiItem(scrapy.Item):
     people_average = scrapy.Field()
     subtitle = scrapy.Field()
     address = scrapy.Field()
+    hotel_star = scrapy.Field()
     food_series = scrapy.Field()
     lat = scrapy.Field()
     ticket = scrapy.Field()

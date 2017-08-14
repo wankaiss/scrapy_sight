@@ -7,7 +7,6 @@ from ..items import PoiItem
 
 
 class AttractionSpider(scrapy.Spider):
-    page_num = 2
     name = 'attraction'
     allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
     start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key'
@@ -21,12 +20,14 @@ class AttractionSpider(scrapy.Spider):
         """
         for url in self.start_urls:
             item = PoiItem()
+            page_num = 0
             city = u'上海'
             url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key' \
                   '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % city
             print 'start_url: ' + url
-            item['city'] = city
+            item['city.py'] = city
             yield scrapy.Request(url, self.parse, meta={
+                'page_num': page_num,
                 'item': item
             })
 
@@ -39,6 +40,7 @@ class AttractionSpider(scrapy.Spider):
         """
         status = response.xpath('//GeocodeResponse/status/text()').extract()
         if len(status) != 0 and status[0] == u'OK':
+            page_num = response.meta['page_num']
             item = response.meta['item']
             lat = response.xpath('//geometry/location/lat/text()').extract()[0]
             lng = response.xpath('//geometry/location/lng/text()').extract()[0]
@@ -47,9 +49,10 @@ class AttractionSpider(scrapy.Spider):
             attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
                              '?language=zh_CN&location=%s,' \
                              '%s&radius=50000&type=TouristAttraction&keyword=attraction&key' \
-                             '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % (lat, lng)
+                             '=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % (lat, lng)
             print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
+                'page_num': page_num,
                 'item': item
             })
 
@@ -63,26 +66,28 @@ class AttractionSpider(scrapy.Spider):
         print 'run into attraction_parse'
         status = response.xpath('//PlaceSearchResponse/status/text()').extract()
         if len(status) != 0 and status[0] == u'OK':
-            item = response.meta['item']
+            page_num = response.meta['page_num']
             for sel in response.xpath('/PlaceSearchResponse/result')[0:10]:
+                item = response.meta['item']
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
                              '=zh_CN&placeid=%s&key' \
-                             '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % place_id[0]
+                             '=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
                 })
             next_page_token = response.xpath(
                 '/PlaceSearchResponse/next_page_token/text()').extract()
-            if self.page_num < 3:
-                print self.page_num
+            if page_num < 3:
+                print page_num
                 if len(next_page_token) != 0:
-                    self.page_num += 1
+                    page_num += 1
                     next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-                                    '?pagetoken=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % \
+                                    '?pagetoken=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % \
                                     next_page_token[0]
                     yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
+                        'page_num': page_num,
                         'item': item
                     })
 
@@ -141,7 +146,7 @@ class AttractionSpider(scrapy.Spider):
         else:
             comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={

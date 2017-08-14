@@ -44,7 +44,7 @@ class EatTestSpider1(scrapy.Spider):
                 for third_sel in sec_sel.xpath('a')[0:1]:
                     print u'三级目录: ' + third_sel.xpath('@href').extract()[0]
                     ctripItem['country'] = u'国内'
-                    ctripItem['city'] = third_sel.xpath('text()').extract()[0]
+                    ctripItem['city.py'] = third_sel.xpath('text()').extract()[0]
                     url = 'http://you.ctrip.com' + third_sel.xpath('@href').extract()[0]
                     print url
                     yield scrapy.Request(url, meta={
@@ -124,9 +124,9 @@ class EatTestSpider1(scrapy.Spider):
             # '/html/body/div[5]/div/div[1]/div/div[1]/div[1]/dl/dt/a'
             city = sel.xpath('dl/dt/a/text()').extract()
             if len(city) != 0:
-                ctripItem['city'] = city[0]
+                ctripItem['city.py'] = city[0]
             else:
-                ctripItem['city'] = u'无数据'
+                ctripItem['city.py'] = u'无数据'
             print 'path: ' + path
             url = 'http://you.ctrip.com' + path
             yield scrapy.Request(url=url, meta={
@@ -263,7 +263,7 @@ class EatTestSpider1(scrapy.Spider):
             'continent': ctripItem['continent'],
             'area': ctripItem['area'],
             'country': ctripItem['country'],
-            'city': ctripItem['city']
+            'city.py': ctripItem['city.py']
         }
 
 

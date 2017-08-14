@@ -62,7 +62,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_sight.middlewares.ProxyMiddleware': 100,  # proxy use only
     # 'scrapy_splash.SplashCookiesMiddleware': 723,  # render html with scrapy_splash
     # 'scrapy_splash.SplashMiddleware': 725,  # render html with scrapy_splash
-    # 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,  # render html with scrapy_splash
+    # 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,  # render
+    # html with scrapy_splash
 
 }
 
@@ -95,7 +96,8 @@ DOWNLOADER_MIDDLEWARES = {
 # AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
-# See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
+# See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html#httpcache
+# -middleware-settings
 # HTTPCACHE_ENABLED = True
 # HTTPCACHE_EXPIRATION_SECS = 0
 # HTTPCACHE_DIR = 'httpcache'
@@ -108,3 +110,7 @@ PROXIES = [
 
 # Every page has 20 data
 PAGE_NUM = u'3'
+
+LOG_FILE = 'logs/spider.log'
+LOG_FORMAT= '%(levelname)s %(asctime)s [%(name)s:%(module)s:%(funcName)s:%(lineno)s] [%(' \
+            'exc_info)s] %(message)s '
