@@ -9,8 +9,8 @@ from pyArango.connection import *
 
 class SightPipeline(object):
     def __init__(self):
-        self.conn = Connection(username='ybbapp', password='se4dr5ft6', arangoURL='http://172.26.30.57:8529')
-        self.db = self.conn['ybbapp']
+        self.conn = Connection(username='******', password='******', arangoURL='http://172.26.30.57:8529')
+        self.db = self.conn['******']
 
     def process_item(self, item, spider):
         scrapy_data = self.db['scrapy_data']
