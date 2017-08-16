@@ -4,7 +4,8 @@ import scrapy
 import re
 from hanziconv.hanziconv import HanziConv
 from ..items import PoiItem
-from ..city import china
+from ..city import thailand
+import json
 
 
 class RestaurantSpider(scrapy.Spider):
@@ -21,13 +22,14 @@ class RestaurantSpider(scrapy.Spider):
         :return: 
         """
         for url in self.start_urls:
-            for city in china[0:1]:
+            for city in thailand:
                 item = PoiItem()
                 page_num = 0
-                print city
-                url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s' \
+                # print city
+                url = 'https://maps.googleapis.com/maps/api/geocode/json?language=zh_CN&address' \
+                      '=%s' \
                       '&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % city
-                print 'start_url: ' + url
+                # print 'start_url: ' + url
                 item['city'] = city
                 yield scrapy.Request(url, self.parse, meta={
                     'page_num': page_num,
@@ -41,18 +43,16 @@ class RestaurantSpider(scrapy.Spider):
         :param response: 
         :return: 
         """
-        status = response.xpath('//GeocodeResponse/status/text()').extract()
-        if len(status) != 0 and status[0] == u'OK':
+        json_loads = json.loads(response.body)
+        if json_loads.get('status') == 'OK':
             item = response.meta['item']
             page_num = response.meta['page_num']
-            lat = response.xpath('//geometry/location/lat/text()').extract()[0]
-            lng = response.xpath('//geometry/location/lng/text()').extract()[0]
+            location = json_loads.get('results')[0].get('geometry').get('location')
+            lat = location.get('lat')
+            lng = location.get('lng')
             item['lat'] = lat
             item['lng'] = lng
-            # attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-            # '?language=zh_CN&location=%s,
-            # ' \ '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyAw
-            # -IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % (lat, lng)
+            item['google_message'] = json_loads.get('results')[0]
             attraction_url = 'https://maps.googleapis.com/maps/api/place/radarsearch/xml?location' \
                              '=%s,' \
                              '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyAw' \
@@ -62,6 +62,14 @@ class RestaurantSpider(scrapy.Spider):
                 'page_num': page_num,
                 'item': item
             })
+        # status = response.xpath('//GeocodeResponse/status/text()').extract()
+        # if len(status) != 0 and status[0] == u'OK':
+        #     lat = response.xpath('//geometry/location/lat/text()').extract()[0]
+        #     lng = response.xpath('//geometry/location/lng/text()').extract()[0]
+            # attraction_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
+            # '?language=zh_CN&location=%s,
+            # ' \ '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyAw
+            # -IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % (lat, lng)
 
     def attraction_parse(self, response):
         """
@@ -75,14 +83,19 @@ class RestaurantSpider(scrapy.Spider):
         if len(status) != 0 and status[0] == u'OK':
             # page_num = response.meta['page_num']
             counter = 0
+            attraction_item = response.meta['item']
             for sel in response.xpath('/PlaceSearchResponse/result'):
-                item = response.meta['item']
+                item = PoiItem()
+                item['city'] = attraction_item['city']
+                item['lat'] = attraction_item['lat']
+                item['lng'] = attraction_item['lng']
+                item['google_message'] = attraction_item['google_message']
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
                              '=zh_CN&placeid=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % \
                              place_id[0]
-                print 'place_id: %s' % place_id
-                print 'counter: %s' % counter
+                # print 'place_id: %s' % place_id
+                # print 'counter: %s' % counter
                 counter += 1
                 # print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
@@ -113,10 +126,10 @@ class RestaurantSpider(scrapy.Spider):
         :param response: 
         :return: 
         """
-        print 'run into detail_parse'
+        # print 'run into detail_parse'
         item = response.meta['item']
         name = response.xpath('/PlaceDetailsResponse/result/name/text()').extract()
-        print 'name: %s' % name[0]
+        # print 'name: %s' % name[0]
         # if len(name) != 0:
         #     name = name[0]
         item['name'] = name[0]
@@ -163,7 +176,7 @@ class RestaurantSpider(scrapy.Spider):
         kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyAw' \
                         '-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY&limit=1&indent=True&languages' \
                         '=zh_CN' % item['name']
-        print 'kg_search_url: ' + kg_search_url
+        # print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
             'item': item
         })
@@ -206,19 +219,27 @@ class RestaurantSpider(scrapy.Spider):
                 # print result
                 name = sel.xpath('text()').extract()[0]
                 if name == u'特色菜':
-                    print name
-                    index = list_result.index(result)
-                    value_result = response.css('.basicInfo-item.value')[index].extract()
-                    recommend = re.sub(r'<[^>]+>', '', value_result).strip()
+                    try:
+                        index = list_result.index(result)
+                        value_result = response.css('.basicInfo-item.value')[index].extract()
+                        recommend = re.sub(r'<[^>]+>', '', value_result).strip()
+                    except IndexError as e:
+                        print e
                 if name == u'人均价格':
-                    index = list_result.index(result)
-                    value_result = response.css('.basicInfo-item.value')[index].extract()
-                    people_average = re.sub(r'<[^>]+>', '', value_result).strip()
+                    try:
+                        index = list_result.index(result)
+                        value_result = response.css('.basicInfo-item.value')[index].extract()
+                        people_average = re.sub(r'<[^>]+>', '', value_result).strip()
+                    except IndexError as e:
+                        print e
                 if name == u'营业时间':
-                    index = list_result.index(result)
-                    value_result = response.css('.basicInfo-item.value')[index].extract()
-                    open_hours = re.sub(r'<[^>]+>', '', value_result).strip()
-                    item['open_hours'] = open_hours
+                    try:
+                        index = list_result.index(result)
+                        value_result = response.css('.basicInfo-item.value')[index].extract()
+                        open_hours = re.sub(r'<[^>]+>', '', value_result).strip()
+                        item['open_hours'] = open_hours
+                    except IndexError as e:
+                        print e
         item['people_average'] = people_average
         item['recommend'] = recommend
         description = response.css('.lemma-summary').extract()
@@ -235,9 +256,12 @@ class RestaurantSpider(scrapy.Spider):
                     type_name = para_title.css('.title-text::text').extract()
                     for i in type_name:
                         if i == u'餐馆类型':
-                            food_series_div_index = div_result.index(h_result[0]) + 1
-                            food_series = div_result[food_series_div_index]
-                            food_series = re.sub(r'<[^>]+>', '', food_series).strip()
+                            try:
+                                food_series_div_index = div_result.index(h_result[0]) + 1
+                                food_series = div_result[food_series_div_index]
+                                food_series = re.sub(r'<[^>]+>', '', food_series).strip()
+                            except IndexError as e:
+                                print e
                         if i == u'推荐菜':
                             for td_list in response.css('.main-content table.table-view tr td'):
                                 td_result = td_list.extract()
@@ -262,5 +286,6 @@ class RestaurantSpider(scrapy.Spider):
             'recommend': item['recommend'],
             'people_average': item['people_average'],
             'food_series': item['food_series'],
-            'recommend_food': item['recommend_food']
+            'recommend_food': item['recommend_food'],
+            'google_message': item['google_message']
         }

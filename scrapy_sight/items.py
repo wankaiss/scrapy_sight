@@ -60,3 +60,4 @@ class PoiItem(scrapy.Item):
     ticket = scrapy.Field()
     advice_time = scrapy.Field()
     lng = scrapy.Field()
+    google_message = scrapy.Field()
