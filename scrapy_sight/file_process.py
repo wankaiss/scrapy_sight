@@ -6,8 +6,8 @@ sys.setdefaultencoding('utf8')
 
 
 def make_data_to_arango():
-    conn = Connection(arangoURL="http://172.26.30.57:8529", username="root",
-                      password="se4dr5ft6")
+    conn = Connection(arangoURL="http://127.0.0.1:8529", username="username",
+                      password="password")
     db = conn["ybbapp"]
     col = db.collections['geo_mapping']
     with open('added0823.txt', 'r') as f:
@@ -25,8 +25,8 @@ def make_data_to_arango():
 
 
 def find_attract():
-    conn = Connection(arangoURL="http://172.26.30.57:8529", username="root",
-                      password="se4dr5ft6")
+    conn = Connection(arangoURL="http://127.0.0.1:8529", username="username",
+                      password="password")
     db = conn["ybbapp"]
     col = db.collections['scrapy_data']
     for result in col.fetchAll():

@@ -8,8 +8,7 @@ from pyArango.connection import *
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 class SightPipeline(object):
     def __init__(self):
-        self.conn = Connection(username='root', password='se4dr5ft6', arangoURL='http://172.26'
-                                                                                '.30.92:8529')
+        self.conn = Connection(username='username', password='password', arangoURL='127.0.0.1:8529')
         self.db = self.conn['ybbapp']
 
     def process_item(self, item, spider):
