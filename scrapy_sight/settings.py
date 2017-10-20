@@ -26,7 +26,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 0.1
+DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
@@ -56,10 +56,10 @@ SPLASH_URL = 'http://172.26.30.78:8050'
 DOWNLOADER_MIDDLEWARES = {
     # 'sight.middlewares.MyCustomDownloaderMiddleware': 543,
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': None,
-    # 'scrapy_sight.spiders.rotate_useragent.RotateUserAgentMiddleware': 400,
-    # 'scrapyjs.SplashMiddleware': 725,  # render html for crawl user splash
-    'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,  # proxy use only
-    'scrapy_sight.middlewares.ProxyMiddleware': 100,  # proxy use only
+    'scrapy_sight.spiders.rotate_useragent.RotateUserAgentMiddleware': 400,
+    'scrapyjs.SplashMiddleware': 725,  # render html for crawl user splash
+    # 'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,  # proxy use only
+    # 'scrapy_sight.middlewares.ProxyMiddleware': 100,  # proxy use only
     # 'scrapy_splash.SplashCookiesMiddleware': 723,  # render html with scrapy_splash
     # 'scrapy_splash.SplashMiddleware': 725,  # render html with scrapy_splash
     # 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,  # render
@@ -68,8 +68,8 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 # render html about js content with scrapyjs
-# DUPEFILTER_CLASS = 'scrapyjs.SplashAwareDupeFilter'
-DUPEFILTER_CLASS = 'scrapy.dupefilter.BaseDupeFilter'
+DUPEFILTER_CLASS = 'scrapyjs.SplashAwareDupeFilter'
+# DUPEFILTER_CLASS = 'scrapy.dupefilter.BaseDupeFilter'
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html

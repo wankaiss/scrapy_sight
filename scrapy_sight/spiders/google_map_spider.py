@@ -6,7 +6,9 @@ import re
 
 
 # 地图坐标获取
-# https://maps.googleapis.com/maps/api/geocode/json?language=zh_CN&address=%E4%B8%8A%E6%B5%B7%E4%B8%AD%E5%BF%83&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
+# https://maps.googleapis.com/maps/api/geocode/json?language=zh_CN&address=巴尔米拉&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
+# 根据坐标定位地址
+# https://maps.googleapis.com/maps/api/geocode/json?latlng=31.2303904,121.4737021&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
 # 雷达搜索
 # https://maps.googleapis.com/maps/api/place/radarsearch/xml?location=48.859294,2.347589&radius=50000&type=restaurant&keyword=food&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
 # 附近查找
@@ -21,8 +23,7 @@ import re
 # 下一页查找
 # https://maps.googleapis.com/maps/api/place/nearbysearch/xml?pagetoken=CpQCCwEAAFCS8K2flhLlVU4IcH_qp-y8NdvLGTcNHoLqnlw_lrybSqUltPWfTxdWqrdGVRap-KeT1W4sSBN-v17_PFj0Z-orgazinfSc91shspgQnkmPj5VZxZuxDlzS_t_o141WsY9WmEQF922D4JMwXhwl08fDGhQvRQZd6ZjCOi5KKksK4e-1VH5Xtb-fFSqTT6LNBpBUwnHpp1hQQ0ohi0Ixqs2smnGcwCSwAuaL97oBQ6AyMDIcBOI0AKopkkyIYoY50p5bADsq42zf70fBRMz9IoIAxNgiJdwCajlnrQI_Mk0QcOJoXiZi1eG1j0qEpMlcw8yRgsN3hxknAY1SjCmoQj5Le48t1WPXFpiC17uXjEItEhAKmHGWrlINvGARfxTzw3MdGhSs_xQRG4doj4AyJHEFzxXk0cBzjg&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
 # 地点详情
-# https://maps.googleapis.com/maps/api/place/details/json?language=zh_CN&placeid
-# =ChIJDTwzJEGuEmsRw4ifQGYDkww&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
+# https://maps.googleapis.com/maps/api/place/details/json?language=zh_CN&placeid=ChIJDTwzJEGuEmsRw4ifQGYDkww&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
 # 根据photo-reference查找图片
 # https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=CmRaAAAApJSns__-0__gPovihJDzG2KFvxMEn11cfihtG8CxrAN774ZEtkJ3upySaqKy6RrPWWY3WIXwF6WBz5TII3g9Zs_XoIV_A0vzwMMyJPRlR18aL46GR4m7mbeOCvI3Jn8kEhBE6b0Lk2I0ocXawDSaP3nsGhQWpiYbcGvmwKL04tcYRD-7kBmX5w&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY
 # google geocoding
