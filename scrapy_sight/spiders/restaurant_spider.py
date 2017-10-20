@@ -4,7 +4,7 @@ import scrapy
 import re
 from hanziconv.hanziconv import HanziConv
 from ..items import PoiItem
-from ..city import thailand
+from ..city import batch5
 import json
 
 
@@ -22,13 +22,13 @@ class RestaurantSpider(scrapy.Spider):
         :return: 
         """
         for url in self.start_urls:
-            for city in thailand:
+            for city in batch5:
                 item = PoiItem()
                 page_num = 0
                 # print city
                 url = 'https://maps.googleapis.com/maps/api/geocode/json?language=zh_CN&address' \
                       '=%s' \
-                      '&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % city
+                      '&key=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk' % city
                 # print 'start_url: ' + url
                 item['city'] = city
                 yield scrapy.Request(url, self.parse, meta={
@@ -55,13 +55,12 @@ class RestaurantSpider(scrapy.Spider):
             item['google_message'] = json_loads.get('results')[0]
             attraction_url = 'https://maps.googleapis.com/maps/api/place/radarsearch/xml?location' \
                              '=%s,' \
-                             '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyAw' \
-                             '-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % (lat, lng)
+                             '%s&radius=50000&type=restaurant&keyword=food&key=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk' % (lat, lng)
             print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
                 'page_num': page_num,
                 'item': item
-            })
+            }, dont_filter=True)
         # status = response.xpath('//GeocodeResponse/status/text()').extract()
         # if len(status) != 0 and status[0] == u'OK':
         #     lat = response.xpath('//geometry/location/lat/text()').extract()[0]
@@ -92,7 +91,7 @@ class RestaurantSpider(scrapy.Spider):
                 item['google_message'] = attraction_item['google_message']
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
-                             '=zh_CN&placeid=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % \
+                             '=zh_CN&placeid=%s&key=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk' % \
                              place_id[0]
                 # print 'place_id: %s' % place_id
                 # print 'counter: %s' % counter
@@ -100,7 +99,7 @@ class RestaurantSpider(scrapy.Spider):
                 # print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
-                })
+                }, dont_filter=True)
             """附近搜索最高只有60结果，现在雷达搜索暂时不用这个"""
             # next_page_token = response.xpath(
             #     '/PlaceSearchResponse/next_page_token/text()').extract()
@@ -111,7 +110,7 @@ class RestaurantSpider(scrapy.Spider):
             #         page_num += 1
             #         next_page_url =
             # 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-            #                         '?pagetoken=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY'
+            #                         '?pagetoken=%s&key=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk'
             # % \
             #                         next_page_token[0]
             #         yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
@@ -173,13 +172,12 @@ class RestaurantSpider(scrapy.Spider):
         else:
             comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyAw' \
-                        '-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk&limit=1&indent=True&languages' \
                         '=zh_CN' % item['name']
         # print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
             'item': item
-        })
+        }, dont_filter=True)
 
     def kg_search_parse(self, response):
         """
@@ -205,7 +203,7 @@ class RestaurantSpider(scrapy.Spider):
         baike_url = 'https://baike.baidu.com/item/%s' % item['name']
         yield scrapy.Request(baike_url, callback=self.baike_parse, meta={
             'item': item
-        })
+        }, dont_filter=True)
 
     def baike_parse(self, response):
         item = response.meta['item']
@@ -213,33 +211,38 @@ class RestaurantSpider(scrapy.Spider):
         """这是对某个特色标签处理"""
         recommend = u'暂无数据'
         people_average = u'暂无数据'
-        if len(list_result) != 0:
+        if list_result is not None and len(list_result) != 0:
             for sel in response.css('.basicInfo-item.name'):
                 result = sel.extract()
                 # print result
-                name = sel.xpath('text()').extract()[0]
-                if name == u'特色菜':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        recommend = re.sub(r'<[^>]+>', '', value_result).strip()
-                    except IndexError as e:
-                        print e
-                if name == u'人均价格':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        people_average = re.sub(r'<[^>]+>', '', value_result).strip()
-                    except IndexError as e:
-                        print e
-                if name == u'营业时间':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        open_hours = re.sub(r'<[^>]+>', '', value_result).strip()
-                        item['open_hours'] = open_hours
-                    except IndexError as e:
-                        print e
+                try:
+                    name = sel.xpath('text()').extract()
+                    if len(name) != 0:
+                        name = name[0]
+                        if name == u'特色菜':
+                            try:
+                                index = list_result.index(result)
+                                value_result = response.css('.basicInfo-item.value')[index].extract()
+                                recommend = re.sub(r'<[^>]+>', '', value_result).strip()
+                            except IndexError as e:
+                                print e
+                        if name == u'人均价格':
+                            try:
+                                index = list_result.index(result)
+                                value_result = response.css('.basicInfo-item.value')[index].extract()
+                                people_average = re.sub(r'<[^>]+>', '', value_result).strip()
+                            except IndexError as e:
+                                print e
+                        if name == u'营业时间':
+                            try:
+                                index = list_result.index(result)
+                                value_result = response.css('.basicInfo-item.value')[index].extract()
+                                open_hours = re.sub(r'<[^>]+>', '', value_result).strip()
+                                item['open_hours'] = open_hours
+                            except IndexError as e:
+                                print e
+                except IndexError as e:
+                    print e
         item['people_average'] = people_average
         item['recommend'] = recommend
         description = response.css('.lemma-summary').extract()
@@ -248,25 +251,29 @@ class RestaurantSpider(scrapy.Spider):
             item['description'] = description
         food_series = u'暂无数据'
         recommend_food = []
-        div_result = response.css('.content .main-content div').extract()
-        for div_list in response.css('.content .main-content div'):
-            h_result = div_list.css('.para-title.level-2').extract()
-            if len(h_result) != 0:
-                for para_title in div_list.css('.para-title.level-2'):
-                    type_name = para_title.css('.title-text::text').extract()
-                    for i in type_name:
-                        if i == u'餐馆类型':
-                            try:
-                                food_series_div_index = div_result.index(h_result[0]) + 1
-                                food_series = div_result[food_series_div_index]
-                                food_series = re.sub(r'<[^>]+>', '', food_series).strip()
-                            except IndexError as e:
-                                print e
-                        if i == u'推荐菜':
-                            for td_list in response.css('.main-content table.table-view tr td'):
-                                td_result = td_list.extract()
-                                text_result = re.sub(r'<[^>]+>', '', td_result).strip()
-                                recommend_food.append(text_result)
+        try:
+            div_result = response.css('.content .main-content div').extract()
+            if len(div_result) != 0:
+                for div_list in response.css('.content .main-content div'):
+                    h_result = div_list.css('.para-title.level-2').extract()
+                    if len(h_result) != 0:
+                        for para_title in div_list.css('.para-title.level-2'):
+                            type_name = para_title.css('.title-text::text').extract()
+                            for i in type_name:
+                                if i == u'餐馆类型':
+                                    try:
+                                        food_series_div_index = div_result.index(h_result[0]) + 1
+                                        food_series = div_result[food_series_div_index]
+                                        food_series = re.sub(r'<[^>]+>', '', food_series).strip()
+                                    except IndexError as e:
+                                        print e
+                                if i == u'推荐菜':
+                                    for td_list in response.css('.main-content table.table-view tr td'):
+                                        td_result = td_list.extract()
+                                        text_result = re.sub(r'<[^>]+>', '', td_result).strip()
+                                        recommend_food.append(text_result)
+        except IndexError as e:
+            print e
         if len(recommend_food) == 0:
             recommend_food.append(u'暂无数据')
         item['recommend_food'] = recommend_food
