@@ -19,40 +19,41 @@ class EatTestSpider1(scrapy.Spider):
     def parse(self, response):
         ctripItem = CtripSightItem()
         """国家"""
-        for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:3]:
-            print u'continent: ' + sel.xpath('dt/text()').extract()[0]
-            ctripItem['continent'] = sel.xpath('dt/text()').extract()[0]
-            for sec_sel in sel.xpath('dd/ul/li')[0:1]:
-                print u'area: ' + sec_sel.xpath('strong/text()').extract()[0]
-                ctripItem['area'] = sec_sel.xpath('strong/text()').extract()[0]
-                for third_sel in sec_sel.xpath('a')[0:1]:
-                    print u'三级目录: ' + third_sel.xpath('@href').extract()[0]
-                    ctripItem['country'] = third_sel.xpath('@href').extract()[0]
-                    url = 'http://you.ctrip.com' + third_sel.xpath('@href').extract()[0]
-                    yield scrapy.Request(url, meta={
-                        'item': ctripItem,
-                        'splash': {
-                            'endpoint': 'render.html',
-                            'args': {'wait': 1}
-                        }
-                    }, callback=self.sight_country_parse)
+        # for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[2:3]:
+        #     print u'continent: ' + sel.xpath('dt/text()').extract()[0]
+        #     ctripItem['continent'] = sel.xpath('dt/text()').extract()[0]
+        #     for sec_sel in sel.xpath('dd/ul/li')[0:1]:
+        #         print u'area: ' + sec_sel.xpath('strong/text()').extract()[0]
+        #         ctripItem['area'] = sec_sel.xpath('strong/text()').extract()[0]
+        #         for third_sel in sec_sel.xpath('a')[0:1]:
+        #             print u'三级目录: ' + third_sel.xpath('@href').extract()[0]
+        #             ctripItem['country'] = third_sel.xpath('@href').extract()[0]
+        #             url = 'http://you.ctrip.com' + third_sel.xpath('@href').extract()[0]
+        #             print url
+        #             yield scrapy.Request(url, meta={
+        #                 'item': ctripItem,
+        #                 'splash': {
+        #                     'endpoint': 'render.html',
+        #                     'args': {'wait': 1}
+        #                 }
+        #             }, callback=self.sight_country_parse)
         """城市"""
-        for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:1]:
+        for sel in response.xpath('//*[@id="journals-panel-items"]/dl')[1:2]:
             print u'continent: ' + sel.xpath('dt/text()').extract()[0]
             ctripItem['continent'] = sel.xpath('dt/text()').extract()[0]
             for sec_sel in sel.xpath('dd/ul/li')[0:1]:
                 print u'area: ' + sec_sel.xpath('strong/text()').extract()[0]
                 ctripItem['area'] = sec_sel.xpath('strong/text()').extract()[0]
-                for third_sel in sec_sel.xpath('a')[0:1]:
+                for third_sel in sec_sel.xpath('a')[3:4]:
                     print u'三级目录: ' + third_sel.xpath('@href').extract()[0]
                     ctripItem['country'] = u'国内'
-                    ctripItem['city.py'] = third_sel.xpath('@href').extract()[0]
+                    ctripItem['city'] = third_sel.xpath('@href').extract()[0]
                     url = 'http://you.ctrip.com' + third_sel.xpath('@href').extract()[0]
                     yield scrapy.Request(url, meta={
                         'item': ctripItem,
                         'splash': {
                             'endpoint': 'render.html',
-                            'args': {'wait': 1}
+                            'args': {'wait': 0.5}
                         }
                     }, callback=self.sight_city_parse)
 
@@ -91,13 +92,12 @@ class EatTestSpider1(scrapy.Spider):
 
     def sight_city_parse(self, response):
         """
-        :description
-                这是对城市进行筛选
+        :这是对城市进行筛选.
         :param response: 
         :return: 
         """
         ctripItem = response.meta['item']
-        for sel in response.xpath('/html/body/div[4]/div/div/ul/li'):  # 一级跳转网站
+        for sel in response.css('.ttd_topnav ul li'):  # 一级跳转网站
             name = sel.xpath('a/text()').extract()
             if len(name) != 0:
                 name = name[0]
@@ -109,19 +109,58 @@ class EatTestSpider1(scrapy.Spider):
                 food = sel.xpath('a/@href').extract()[0]
                 ctripItem['food_url'] = sel.xpath('a/@href').extract()[0]
                 print 'food: ' + food
-            if name == u'购物':
-                shopping = sel.xpath('a/@href').extract()[0]
-                ctripItem['shopping_url'] = sel.xpath('a/@href').extract()[0]
-                print 'shopping: ' + shopping
-        url = 'http://you.ctrip.com' + ctripItem['scenic_url']
+                # if name == u'购物':
+                #     shopping = sel.xpath('a/@href').extract()[0]
+                #     ctripItem['shopping_url'] = sel.xpath('a/@href').extract()[0]
+                #     print 'shopping: ' + shopping
+        url = 'http://you.ctrip.com' + ctripItem['food_url']
         print 'sight_city_parse: ' + url
         yield scrapy.Request(url=url, meta={
             'item': ctripItem,
             'splash': {
                 'endpoint': 'render.html',
-                'args': {'wait': 1}
+                'args': {'wait': 0.5}
             }
-        }, callback=self.real_sight_parse)
+        }, callback=self.more_food_parse)
+
+    def more_food_parse(self, response):
+        more_url = response.css('.des_wide .normaltitle .f_14')
+        for sel in more_url:
+            more_text = sel.css('::text').extract()
+            if len(more_text) != 0 and more_text[0] == u'更多餐馆':
+                # more_food_url = response.css('.des_wide .normaltitle .f_14::attr(href)').extract()
+                more_food_url = sel.css('::attr(href)').extract()
+                if len(more_food_url) != 0:
+                    url = 'http://you.ctrip.com' + more_food_url[0]
+                    print url
+                    yield scrapy.Request(url=url, callback=self.specific_food_parse)
+
+    def specific_food_parse(self, response):
+        for sel in response.css('.list_wide_mod2 .list_mod2 dt a')[0:1]:
+            extract = sel.css('::attr(href)').extract()
+            if len(extract) != 0:
+                url = 'http://you.ctrip.com' + extract[0]
+                print url
+                yield scrapy.Request(url=url, callback=self.get_food_parse)
+
+    def get_food_parse(self, response):
+        result_description = ''
+        for sel1 in response.css('.detailcon div.text_style div, .detailcon '
+                                 'div.text_style'):
+            description = sel1.extract()
+            if len(description) != 0:
+                result_description += re.sub(r'[\s]+', '', re.sub(r'<[^>]+>', '',
+                                                                  description).strip())
+        print ('result_description: ' + result_description)
+
+        for sel in response.css('ul.s_sight_in_list li'):
+            text = sel.extract()
+            if len(text) != 0:
+                title = sel.css('span.s_sight_classic::text').extract()[0]
+                content = sel.css('span.s_sight_con').extract()
+                strip = re.sub(r'<[^>]+>', '', content[0]).strip().encode('gbk', 'ignore')
+                print title
+                print strip
 
     def scenic_parse(self, response):
         """
@@ -131,7 +170,8 @@ class EatTestSpider1(scrapy.Spider):
         :return: 
         """
         ctripItem = response.meta['item']
-        more_scenic = response.xpath('/html/body/div[5]/div/div[1]/div[3]/div[1]/div[11]/span/a/@href').extract()
+        more_scenic = response.xpath(
+            '/html/body/div[5]/div/div[1]/div[3]/div[1]/div[11]/span/a/@href').extract()
         yield scrapy.Request(url='http://you.ctrip.com' + more_scenic[0], meta={
             'item': ctripItem,
             'splash': {
@@ -174,7 +214,8 @@ class EatTestSpider1(scrapy.Spider):
         """
         print 'run into real_sight_parse'
         ctripItem = response.meta['item']
-        for sel in response.xpath('/html/body/div[5]/div/div[1]/div/div[3]/div[@class="list_mod1"]')[0:1]:
+        for sel in response.xpath(
+                '/html/body/div[5]/div/div[1]/div/div[3]/div[@class="list_mod1"]')[0:1]:
             path = sel.xpath('div[@class="rdetailbox"]/dl/dt/a/@href').extract()
             url = 'http://you.ctrip.com' + path[0]
             print 'real_sight_parse: ' + url
@@ -202,10 +243,12 @@ class EatTestSpider1(scrapy.Spider):
         else:
             title = u'title'
         pattern = re.compile(r'<[^>]+>', re.S)
-        highlight = response.xpath('/html/body/div[4]/div/div[1]/div[4]/div[1]/ul/li/text()').extract()  # highlight
+        highlight = response.xpath(
+            '/html/body/div[4]/div/div[1]/div[4]/div[1]/ul/li/text()').extract()  # highlight
         highlight = pattern.sub('', highlight[0])
         ctripItem['scenic_highlight'] = highlight
-        description = response.xpath('/html/body/div[4]/div/div[1]/div[4]/div[1]/div[1]/div').extract()  # description
+        description = response.xpath(
+            '/html/body/div[4]/div/div[1]/div[4]/div[1]/div[1]/div').extract()  # description
         description = pattern.sub('', description[0]).strip()
         ctripItem['scenic_description'] = description
         address = response.xpath('//*[@class="s_sight_infor"]/p/text()').extract()[0]  # address
@@ -239,8 +282,10 @@ class EatTestSpider1(scrapy.Spider):
                 advice_time = sel.xpath('span[@class="s_sight_con"]/text()').extract()[0]
                 advice_time = pattern.sub('', advice_time).strip()
                 ctripItem['scenic_advice_time'] = advice_time
-        # print 'highlight: %s\n description: %s\n address: %s\n mobile: %s\n open_time: %s\n adivce_time: %s\n
-        # ticket: ' \ '%s' % ( highlight, description, address, mobile, open_time, advice_time, ticket)
+        # print 'highlight: %s\n description: %s\n address: %s\n mobile: %s\n open_time: %s\n
+        # adivce_time: %s\n
+        # ticket: ' \ '%s' % ( highlight, description, address, mobile, open_time, advice_time,
+        # ticket)
         yield {
             'title': title,
             'description': description,
@@ -254,4 +299,3 @@ class EatTestSpider1(scrapy.Spider):
             'country': ctripItem['country'],
             'city.py': ctripItem['city.py']
         }
-

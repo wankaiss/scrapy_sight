@@ -4,23 +4,23 @@ import scrapy
 import re
 from hanziconv.hanziconv import HanziConv
 from ..items import PoiItem
-from ..city import china
+from ..south_america import batch1
 
 
 class ShoppingSpider(scrapy.Spider):
     name = 'shopping'
-    allowed_domains = ['google.com', 'googleapis.com']
+    # allowed_domains = ['google.com', 'googleapis.com']
     start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key'
-                  '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs']
+                  '=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE']
 
     def start_requests(self):
         for url in self.start_urls:
-            for city in china[50:]:
+            for city in batch1:
                 page_num = 0
                 item = PoiItem()
                 url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s' \
                       '&key' \
-                      '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % city
+                      '=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE' % city
                 # print 'start_url: ' + url
                 item['city'] = city
                 yield scrapy.Request(url, self.parse, meta={
@@ -40,7 +40,7 @@ class ShoppingSpider(scrapy.Spider):
             attraction_url = 'https://maps.googleapis.com/maps/api/place/radarsearch/xml?location' \
                              '=%s,' \
                              '%s&radius=50000&type=shoppingCenter&keyword=shopping&key' \
-                             '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % (
+                             '=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE' % (
                                  lat, lng)
             # print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
@@ -61,12 +61,12 @@ class ShoppingSpider(scrapy.Spider):
                 item['lng'] = attraction_item['lng']
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
-                             '=zh_CN&placeid=%s&key=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % \
+                             '=zh_CN&placeid=%s&key=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE' % \
                              place_id[0]
                 # print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
-                })
+                }, dont_filter=True)
                 # next_page_token = response.xpath(
                 #     '/PlaceSearchResponse/next_page_token/text()').extract()
                 # if page_num < 3:
@@ -76,7 +76,7 @@ class ShoppingSpider(scrapy.Spider):
                 #         next_page_url =
                 # 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
                 #
-                # '?pagetoken=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % \
+                # '?pagetoken=%s&key=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE' % \
                 #                         next_page_token[0]
                 #         yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
                 #             'page_num': page_num,
@@ -85,7 +85,11 @@ class ShoppingSpider(scrapy.Spider):
 
     def detail_parse(self, response):
         # print 'run into detail_parse'
-        item = response.meta['item']
+        attraction_item = response.meta['item']
+        item = PoiItem()
+        item['lat'] = attraction_item['lat']
+        item['lng'] = attraction_item['lng']
+        item['city'] = attraction_item['city']
         name = response.xpath('/PlaceDetailsResponse/result/name/text()').extract()
         if len(name) != 0:
             name = name[0]
@@ -133,7 +137,7 @@ class ShoppingSpider(scrapy.Spider):
             comment.append(u'暂无数据')
         item['comment'] = comment
         kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key' \
-                        '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs&limit=1&indent=True&languages' \
+                        '=AIzaSyCMRaP3nCvHSRTuXq0LoDQ4rxP9Kxyr7kE&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         # print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
@@ -155,6 +159,7 @@ class ShoppingSpider(scrapy.Spider):
         else:
             subtitle = u'暂无数据'
         yield {
+            'type': 'shopping',
             'city': item['city'],
             'name': item['name'],
             'address': item['address'],

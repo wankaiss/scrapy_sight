@@ -4,13 +4,13 @@ import scrapy
 import re
 from hanziconv.hanziconv import HanziConv
 from ..items import PoiItem
-from ..city import china
+from ..eurape_city import batch4
 
 
 class RestaurantSpider(scrapy.Spider):
     name = 'hotel'
-    allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
-    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY']
+    # allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
+    start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k']
 
     def start_requests(self):
         """
@@ -19,10 +19,10 @@ class RestaurantSpider(scrapy.Spider):
         :return: 
         """
         for url in self.start_urls:
-            for city in china:
+            for city in batch4:
                 item = PoiItem()
                 page_num = 0
-                url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % city
+                url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % city
                 # print 'start_url: ' + url
                 item['city'] = city
                 yield scrapy.Request(url, self.parse, meta={
@@ -47,7 +47,7 @@ class RestaurantSpider(scrapy.Spider):
             item['lng'] = lng
             attraction_url = "https://maps.googleapis.com/maps/api/place/radarsearch/xml?location" \
                              "=%s,%s&radius=50000&type=Hotel&keyword=hotel&key" \
-                             "=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY" % (lat, lng)
+                             "=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k" % (lat, lng)
             # print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
                 'page_num': page_num,
@@ -73,7 +73,7 @@ class RestaurantSpider(scrapy.Spider):
                 item['lng'] = attraction_item['lng']
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
-                             '=zh_CN&placeid=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % place_id[0]
+                             '=zh_CN&placeid=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
@@ -85,7 +85,7 @@ class RestaurantSpider(scrapy.Spider):
             #     if len(next_page_token) != 0:
             #         page_num += 1
             #         next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-            #                         '?pagetoken=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY' % \
+            #                         '?pagetoken=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k' % \
             #                         next_page_token[0]
             #         yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
             #             'page_num': page_num,
@@ -100,7 +100,11 @@ class RestaurantSpider(scrapy.Spider):
         :return: 
         """
         print 'run into detail_parse'
-        item = response.meta['item']
+        attraction_item = response.meta['item']
+        item = PoiItem()
+        item['lat'] = attraction_item['lat']
+        item['lng'] = attraction_item['lng']
+        item['city'] = attraction_item['city']
         name = response.xpath('/PlaceDetailsResponse/result/name/text()').extract()
         if len(name) != 0:
             name = name[0]
@@ -147,7 +151,7 @@ class RestaurantSpider(scrapy.Spider):
         else:
             comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyAw-IJpHf6CYtb4OVgrj2MB7pmXlbSs7aY&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         # print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
@@ -189,20 +193,23 @@ class RestaurantSpider(scrapy.Spider):
             for sel in response.css('.basicInfo-item.name'):
                 result = sel.extract()
                 # print result
-                name = sel.xpath('text()').extract()[0]
-                if name == u'酒店星级':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        hotel_star = re.sub(r'<[^>]+>', '', value_result).strip()
-                    except IndexError as e:
-                        print e
+                name = sel.xpath('text()').extract()
+                if len(name) != 0:
+                    name = name[0]
+                    if name == u'酒店星级':
+                        try:
+                            index = list_result.index(result)
+                            value_result = response.css('.basicInfo-item.value')[index].extract()
+                            hotel_star = re.sub(r'<[^>]+>', '', value_result).strip()
+                        except IndexError as e:
+                            print e
         item['hotel_star'] = hotel_star
         description = response.css('.lemma-summary').extract()
         if len(description) != 0:
             description = re.sub(r'<[^>]+>', '', description[0]).strip()
             item['description'] = description
         yield {
+            'type': 'hotel',
             'name': item['name'],
             'address': item['address'],
             'mobile': item['mobile'],

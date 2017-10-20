@@ -4,14 +4,14 @@ import scrapy
 import re
 from hanziconv.hanziconv import HanziConv
 from ..items import PoiItem
-from ..city import china
+from ..africa import batch1
 
 
 class AttractionSpider(scrapy.Spider):
     name = 'attraction'
-    allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
+    # allowed_domains = ['google.com', 'googleapis.com', 'baidu.com']
     start_urls = ['https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=上海&key'
-                  '=AIzaSyDJtV9r7rAr9EBwlQ8Rbxvo6e7CkJsLn4k']
+                  '=AIzaSyANESsauH0jhSNI9UwTuUgnUmH6YuejEYk']
 
     def start_requests(self):
         """
@@ -20,11 +20,11 @@ class AttractionSpider(scrapy.Spider):
         :return: 
         """
         for url in self.start_urls:
-            for city in china:
+            for city in batch1:
                 item = PoiItem()
                 page_num = 0
                 url = 'https://maps.googleapis.com/maps/api/geocode/xml?language=zh_CN&address=%s&key' \
-                      '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % city
+                      '=AIzaSyBdoUF02AwAerxI3rcPxKAP1jFSib2y0Fw' % city
                 # print 'start_url: ' + url
                 item['city'] = city
                 yield scrapy.Request(url, self.parse, meta={
@@ -50,7 +50,7 @@ class AttractionSpider(scrapy.Spider):
             attraction_url = 'https://maps.googleapis.com/maps/api/place/radarsearch/xml?location' \
                              '=%s,' \
                              '%s&radius=50000&type=TouristAttraction&keyword=attraction&key' \
-                             '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % (lat, lng)
+                             '=AIzaSyBdoUF02AwAerxI3rcPxKAP1jFSib2y0Fw' % (lat, lng)
 
             # print 'attraction_url: ' + attraction_url
             yield scrapy.Request(url=attraction_url, callback=self.attraction_parse, meta={
@@ -78,7 +78,7 @@ class AttractionSpider(scrapy.Spider):
                 place_id = sel.xpath('place_id/text()').extract()
                 detail_url = 'https://maps.googleapis.com/maps/api/place/details/xml?language' \
                              '=zh_CN&placeid=%s&key' \
-                             '=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % place_id[0]
+                             '=AIzaSyBdoUF02AwAerxI3rcPxKAP1jFSib2y0Fw' % place_id[0]
                 print detail_url
                 yield scrapy.Request(url=detail_url, callback=self.detail_parse, meta={
                     'item': item
@@ -90,7 +90,7 @@ class AttractionSpider(scrapy.Spider):
             #     if len(next_page_token) != 0:
             #         page_num += 1
             #         next_page_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/xml' \
-            #                         '?pagetoken=%s&key=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs' % \
+            #                         '?pagetoken=%s&key=AIzaSyBdoUF02AwAerxI3rcPxKAP1jFSib2y0Fw' % \
             #                         next_page_token[0]
             #         yield scrapy.Request(next_page_url, callback=self.attraction_parse, meta={
             #             'page_num': page_num,
@@ -105,7 +105,11 @@ class AttractionSpider(scrapy.Spider):
         :return: 
         """
         print 'run into detail_parse'
-        item = response.meta['item']
+        attraction_item = response.meta['item']
+        item = PoiItem()
+        item['lat'] = attraction_item['lat']
+        item['lng'] = attraction_item['lng']
+        item['city'] = attraction_item['city']
         name = response.xpath('/PlaceDetailsResponse/result/name/text()').extract()
         if len(name) != 0:
             name = name[0]
@@ -152,12 +156,12 @@ class AttractionSpider(scrapy.Spider):
         else:
             comment.append(u'暂无数据')
         item['comment'] = comment
-        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyCkP_wKngI8uFUc_cmoE5yRbYYh5ZDw9Fs&limit=1&indent=True&languages' \
+        kg_search_url = 'https://kgsearch.googleapis.com/v1/entities:search?query=%s&key=AIzaSyBdoUF02AwAerxI3rcPxKAP1jFSib2y0Fw&limit=1&indent=True&languages' \
                         '=zh_CN' % name
         # print 'kg_search_url: ' + kg_search_url
         yield scrapy.Request(url=kg_search_url, callback=self.kg_search_parse, meta={
             'item': item
-        })
+        }, dont_filter=True)
 
     def kg_search_parse(self, response):
         """
@@ -195,22 +199,24 @@ class AttractionSpider(scrapy.Spider):
             for sel in response.css('.basicInfo-item.name'):
                 result = sel.extract()
                 # print result
-                name = sel.xpath('text()').extract()[0]
-                if name == u'门票价格':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        ticket = re.sub(r'<[^>]+>', '', value_result).strip()
-                    except IndexError as e:
-                        print e
+                name = sel.xpath('text()').extract()
+                if len(name) != 0:
+                    name = name[0]
+                    if name == u'门票价格':
+                        try:
+                            index = list_result.index(result)
+                            value_result = response.css('.basicInfo-item.value')[index].extract()
+                            ticket = re.sub(r'<[^>]+>', '', value_result).strip()
+                        except IndexError as e:
+                            print e
 
-                if name == u'建议游玩时长':
-                    try:
-                        index = list_result.index(result)
-                        value_result = response.css('.basicInfo-item.value')[index].extract()
-                        advice_time = re.sub(r'<[^>]+>', '', value_result).strip()
-                    except IndexError as e:
-                        print e
+                    if name == u'建议游玩时长':
+                        try:
+                            index = list_result.index(result)
+                            value_result = response.css('.basicInfo-item.value')[index].extract()
+                            advice_time = re.sub(r'<[^>]+>', '', value_result).strip()
+                        except IndexError as e:
+                            print e
         item['ticket'] = ticket
         item['advice_time'] = advice_time
         description = response.css('.lemma-summary').extract()
@@ -218,6 +224,7 @@ class AttractionSpider(scrapy.Spider):
             description = re.sub(r'<[^>]+>', '', description[0]).strip()
             item['description'] = description
         yield {
+            'type': 'attraction',
             'name': item['name'],
             'city': item['city'],
             'address': item['address'],
