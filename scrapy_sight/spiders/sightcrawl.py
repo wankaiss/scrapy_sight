@@ -2,7 +2,6 @@
 import scrapy
 from ..items import SightItem
 import re
-from ..geo_api import baidu_geo_api, google_geo_api
 from ..foreigh_landmark import foreigh_7
 from pypinyin import lazy_pinyin
 from scrapy import log
